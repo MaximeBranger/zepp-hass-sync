@@ -25,15 +25,17 @@ export const LOCAL_STORAGE_KEY_WEBHOOK_CONFIGURED = 'webhookConfigured'
 export const DEFAULT_INTERVAL_MINUTES = 5
 export const MIN_INTERVAL_MINUTES = 1
 export const MAX_INTERVAL_MINUTES = 180
-export const INTERVAL_STEP_MINUTES = 5
+export const INTERVAL_STEP_MINUTES = 1
 
 // Parses and clamps a sync interval to [MIN_INTERVAL_MINUTES, MAX_INTERVAL_MINUTES],
-// falling back to DEFAULT_INTERVAL_MINUTES when not finite/positive. Shared by the phone
-// settings page, the SET_INTERVAL BLE handler, and the watch-side +/- stepper so all three
-// enforce the exact same bounds.
+// falling back to DEFAULT_INTERVAL_MINUTES only when not finite (e.g. blank/garbage input).
+// A finite non-positive value (e.g. the watch stepper decrementing past MIN) clamps to
+// MIN_INTERVAL_MINUTES instead of jumping to the default. Shared by the phone settings page,
+// the SET_INTERVAL BLE handler, and the watch-side +/- stepper so all three enforce the exact
+// same bounds.
 export function clampIntervalMinutes(raw) {
   const parsed = typeof raw === 'number' ? raw : parseInt(raw, 10)
-  const minutes = Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_INTERVAL_MINUTES
+  const minutes = Number.isFinite(parsed) ? parsed : DEFAULT_INTERVAL_MINUTES
   return Math.min(MAX_INTERVAL_MINUTES, Math.max(MIN_INTERVAL_MINUTES, minutes))
 }
 
