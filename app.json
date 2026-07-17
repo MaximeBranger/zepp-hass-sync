@@ -53,7 +53,9 @@
           "path": "setting/index"
         },
         "app-service": {
-          "path": "app-service/index"
+          "services": [
+            "app-service/index"
+          ]
         }
       },
       "platforms": [
