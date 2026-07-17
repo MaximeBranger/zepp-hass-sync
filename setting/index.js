@@ -37,6 +37,7 @@ AppSettingsPage({
           [
             TextInput({
               label: gettext('webhookUrlLabel'),
+              placeholder: gettext('webhookUrlPlaceholder'),
               value: webhookUrl,
               onChange: (value) => this.setWebhookUrl(value),
             }),

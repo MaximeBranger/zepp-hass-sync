@@ -1,7 +1,7 @@
 import { EventBus } from '@zos/utils'
 import { log as Logger } from '@zos/utils'
 import { Deferred, timeout } from './defer'
-import { json2buf, buf2json, bin2hex, str2buf, buf2str } from './data'
+import { json2buf, buf2json, bin2hex, buf2str } from './data'
 
 let logger
 
@@ -236,14 +236,6 @@ export class MessageBuilder extends EventBus {
     this.sessionMgr = new SessionMgr()
   }
 
-  getMessageSize() {
-    return MESSAGE_SIZE
-  }
-
-  getMessagePayloadSize() {
-    return MESSAGE_PAYLOAD
-  }
-
   getMessageHeaderSize() {
     return MESSAGE_HEADER
   }
@@ -454,10 +446,6 @@ export class MessageBuilder extends EventBus {
     }
   }
 
-  _logSend(buf) {
-    this.sendMsg(buf, false)
-  }
-
   // 大数据的复杂头部分包协议
   sendHmProtocol({ requestId, dataBin, type, contentType, dataType }, { messageType = MessageType.Data } = {}) {
     const headerSize = 0
@@ -533,57 +521,6 @@ export class MessageBuilder extends EventBus {
     }
   }
 
-  // 大数据的简单分包协议
-  sendSimpleProtocol({ dataBin }, { messageType = MessageType.Data } = {}) {
-    const dataSize = this.chunkSize
-    const headerSize = 0
-    const userDataLength = dataBin.byteLength
-
-    let offset = 0
-    const _buf = Buffer.alloc(dataSize)
-
-    const count = Math.ceil(userDataLength / dataSize)
-
-    for (let i = 1; i <= count; i++) {
-      if (i === count) {
-        // last
-        const tailSize = userDataLength - offset
-        const tailBuf = Buffer.alloc(headerSize + tailSize)
-
-        dataBin.copy(tailBuf, headerSize, offset, offset + tailSize)
-        offset += tailSize
-        this.sendSimpleData(
-          {
-            payload: tailBuf
-          },
-          {
-            messageType
-          }
-        )
-
-        break
-      }
-
-      dataBin.copy(_buf, headerSize, offset, offset + dataSize)
-      offset += dataSize
-
-      this.sendSimpleData(
-        {
-          payload: _buf
-        },
-        {
-          messageType
-        }
-      )
-    }
-
-    if (offset === userDataLength) {
-      // logger.debug('SimpleProtocol send ok msgSize=> %d dataSize=> %d', offset, userDataLength)
-    } else {
-      // logger.error('SimpleProtocol send error msgSize=> %d dataSize=> %d', offset, userDataLength)
-    }
-  }
-
   sendJson({ requestId = 0, json, type = MessagePayloadType.Request, contentType, dataType }) {
     const packageBin = json2buf(json)
     const traceId = requestId ? requestId : genTraceId()
@@ -609,18 +546,6 @@ export class MessageBuilder extends EventBus {
     })
   }
 
-  sendLog(str) {
-    const packageBuf = str2buf(str)
-    this.sendSimpleProtocol(
-      {
-        dataBin: packageBuf
-      },
-      {
-        messageType: MessageType.Log
-      }
-    )
-  }
-
   sendDataWithSession({ traceId, spanId, seqId, payload, type, opCode, totalLength, contentType, dataType }, { messageType }) {
     const payloadBin = this.buildPayload({
       traceId,
@@ -641,16 +566,6 @@ export class MessageBuilder extends EventBus {
       : payloadBin
 
     this.sendMsg(data)
-  }
-
-  sendSimpleData({ payload }, { messageType }) {
-    let data = this.isDevice
-      ? this.buildData(payload, {
-        type: messageType
-      })
-      : payload
-
-    this._logSend(data)
   }
 
   buildPayload(data) {
@@ -852,8 +767,6 @@ export class MessageBuilder extends EventBus {
     } else if (data.flag === MessageFlag.App && data.type === MessageType.DataWithSystemTool && data.port2 === this.appSidePort) {
       this.emit('message', data.payload)
       this.emit('read', data)
-    } else if (data.flag === MessageFlag.App && data.type === MessageType.Log && data.port2 === this.appSidePort) {
-      this.emit('log', data.payload)
     } else {
       logger.error('error appSidePort=>%d data=>%j', this.appSidePort, data)
     }
@@ -885,8 +798,6 @@ export class MessageBuilder extends EventBus {
             })
           } else if (fullPayload.payloadType === MessagePayloadType.Response) {
             this.emit('response', fullPayload)
-          } else if (fullPayload.payloadType === MessagePayloadType.Notify) {
-            this.emit('call', fullPayload)
           }
 
           this.emit('data', fullPayload)
@@ -1003,96 +914,6 @@ export class MessageBuilder extends EventBus {
     return this.waitingShakePromise.then(_request)
   }
 
-  requestCb(data, opts, cb) {
-    const _requestCb = () => {
-      const defaultOpts = {
-        timeout: 60000,
-        contentType: 'json',
-        dataType: 'json'
-      }
-
-      if (typeof opts === 'function') {
-        cb = opts
-        opts = defaultOpts
-      } else {
-        opts = Object.assign(defaultOpts, opts)
-      }
-
-      const requestId = genTraceId()
-      let timer1 = null
-      let hasReturned = false
-
-      const transact = ({ traceId, payload, dataType }) => {
-        DEBUG && logger.debug('traceId=>%d payload=>%s', traceId, payload.toString('hex'))
-        if (traceId === requestId) {
-          let result
-          switch (dataType) {
-            case MessagePayloadDataTypeOp.TEXT:
-              result = buf2str(payload)
-              break
-            case MessagePayloadDataTypeOp.BIN:
-              result = payload
-              break
-            case MessagePayloadDataTypeOp.JSON:
-              result = buf2json(payload)
-              break
-            default: // text
-              result = buf2str(payload)
-              break
-          }
-          DEBUG && logger.debug('request id=>%d payload=>%j', requestId, data)
-          DEBUG && logger.debug('response id=>%d payload=>%j', requestId, result)
-
-          timer1 && clearTimeout(timer1)
-          timer1 = null
-          this.off('response', transact)
-          hasReturned = true
-          cb(null, result)
-        }
-      }
-
-      this.on('response', transact)
-      if (Buffer.isBuffer(data)) {
-        this.sendBuf({
-          requestId,
-          buf: data,
-          type: MessagePayloadType.Request,
-          contentType: MessagePayloadDataTypeOp.BIN,
-          dataType: getDataType(opts.dataType)
-        })
-      } else if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
-        this.sendBuf({
-          requestId,
-          buf: Buffer.from(data),
-          type: MessagePayloadType.Request,
-          contentType: MessagePayloadDataTypeOp.BIN,
-          dataType: getDataType(opts.dataType)
-        })
-      } else {
-        this.sendJson({
-          requestId,
-          json: data,
-          type: MessagePayloadType.Request,
-          contentType: MessagePayloadDataTypeOp.JSON,
-          dataType: getDataType(opts.dataType)
-        })
-      }
-
-      timer1 = setTimeout(() => {
-        timer1 = null
-        if (hasReturned) {
-          return
-        }
-
-        DEBUG && logger.error(`request time out in ${opts.timeout}ms error=>%d data=>%j`, requestId, data)
-        this.off('response', transact)
-        cb(Error(`Timed out in ${opts.timeout}ms.`))
-      }, opts.timeout)
-    }
-
-    return this.waitingShakePromise.then(_requestCb)
-  }
-
   /**
    * 相应接口给当前请求
    * @param {obj} param0
@@ -1115,37 +936,5 @@ export class MessageBuilder extends EventBus {
         dataType
       })
     }
-  }
-
-  /**
-   * call 模式调用接口到伴生服务
-   * @param {json | buffer} data
-   * @returns
-   */
-  call(data) {
-    return this.waitingShakePromise.then(() => {
-      if (Buffer.isBuffer(data)) {
-        return this.sendBuf({
-          buf: data,
-          type: MessagePayloadType.Notify,
-          contentType: MessagePayloadDataTypeOp.BIN,
-          dataType: MessagePayloadDataTypeOp.EMPTY
-        })
-      } else if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
-        return this.sendBuf({
-          buf: Buffer.from(data),
-          type: MessagePayloadType.Notify,
-          contentType: MessagePayloadDataTypeOp.BIN,
-          dataType: MessagePayloadDataTypeOp.EMPTY
-        })
-      } else {
-        return this.sendJson({
-          json: data,
-          type: MessagePayloadType.Notify,
-          contentType: MessagePayloadDataTypeOp.JSON,
-          dataType: MessagePayloadDataTypeOp.EMPTY
-        })
-      }
-    })
   }
 }

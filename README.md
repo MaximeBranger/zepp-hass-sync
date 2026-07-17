@@ -13,7 +13,13 @@ schema, architecture, phasing, and open risks.
 
 ## Status
 
-Specification stage — no app code yet.
+Reads every available sensor and sends it to the phone over BLE, which formats it
+to the zepp2hass JSON shape and POSTs it to the webhook URL configured in the app's
+phone-side Settings screen (no URL configured → the watch shows an error instead of
+sending). Triggered either by tapping a button on the watch, or automatically every
+N minutes (N also set in the phone-side Settings screen) via a background
+`app-service` + alarm. Built incrementally — see
+[SPECIFICATIONS.md](SPECIFICATIONS.md) §2 for the plan.
 
 ## Target device
 

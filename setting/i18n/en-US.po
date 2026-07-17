@@ -1,5 +1,8 @@
 msgid "webhookUrlLabel"
 msgstr "zepp2hass webhook URL"
 
+msgid "webhookUrlPlaceholder"
+msgstr "https://your-home-assistant/api/webhook/..."
+
 msgid "intervalLabel"
 msgstr "Sync interval (minutes)"

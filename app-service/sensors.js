@@ -32,27 +32,28 @@ function safe(fn, fallback) {
   }
 }
 
-// Fields with no API in the installed Zepp OS 3.0 SDK (verified by grepping the
-// full @zeppos/device-types typings) are omitted entirely rather than faked:
-// battery.is_charging, workout.history[].sportType, most of device.* (only the
-// fields read below exist), user.birth/appVersion/appPlatform/uuid, screen.light
-// (typed but @version 3.6, above GTR4's 3.0/3.5 target). See SPECIFICATIONS.md §7.
-export function buildPayload() {
-  const battery = new Battery()
-  const step = new Step()
-  const calorie = new Calorie()
-  const heartRate = new HeartRate()
-  const pai = new Pai()
-  const distance = new Distance()
-  const stand = new Stand()
-  const fatBurning = new FatBurning()
-  const bloodOxygen = new BloodOxygen()
-  const stress = new Stress()
-  const wear = new Wear()
-  const sleep = new Sleep()
-  const bodyTemperature = new BodyTemperature()
-  const workout = new Workout()
-  const screen = new Screen()
+// Raw values read straight off the watch's sensors — no zepp2hass shaping here,
+// that happens phone-side in app-side/format.js. Fields with no API on Zepp OS 3.0
+// (charging state, workout sportType, most of device.*, user.birth/appVersion/
+// appPlatform/uuid) are simply absent — see SPECIFICATIONS.md §7.
+export function readSensors() {
+  // Each sensor is constructed independently so one failing constructor can't
+  // take down the whole payload.
+  const battery = safe(() => new Battery(), null)
+  const step = safe(() => new Step(), null)
+  const calorie = safe(() => new Calorie(), null)
+  const heartRate = safe(() => new HeartRate(), null)
+  const pai = safe(() => new Pai(), null)
+  const distance = safe(() => new Distance(), null)
+  const stand = safe(() => new Stand(), null)
+  const fatBurning = safe(() => new FatBurning(), null)
+  const bloodOxygen = safe(() => new BloodOxygen(), null)
+  const stress = safe(() => new Stress(), null)
+  const wear = safe(() => new Wear(), null)
+  const sleep = safe(() => new Sleep(), null)
+  const bodyTemperature = safe(() => new BodyTemperature(), null)
+  const workout = safe(() => new Workout(), null)
+  const screen = safe(() => new Screen(), null)
 
   const profile = safe(() => getProfile(), {})
   const device = safe(() => getDeviceInfo(), {})
@@ -66,7 +67,7 @@ export function buildPayload() {
 
     screen: {
       status: safe(() => screen.getStatus(), undefined),
-      aod_mode: safe(() => screen.getAodMode(), undefined),
+      aodMode: safe(() => screen.getAodMode(), undefined),
     },
 
     device: {
@@ -90,22 +91,16 @@ export function buildPayload() {
       region: profile.region,
     },
 
-    battery: {
-      current: safe(() => battery.getCurrent(), undefined),
-    },
+    battery: safe(() => battery.getCurrent(), undefined),
 
-    body_temperature: bodyTemp
-      ? { current: { value: bodyTemp.current, time: bodyTemp.time } }
-      : undefined,
+    bodyTemperature: bodyTemp ? { value: bodyTemp.current, time: bodyTemp.time } : undefined,
 
     stress: {
       current: safe(() => stress.getCurrent(), undefined),
-      last_week: safe(() => stress.getLastWeek(), undefined),
+      lastWeek: safe(() => stress.getLastWeek(), undefined),
     },
 
-    blood_oxygen: {
-      few_hours: safe(() => bloodOxygen.getLastFewHour(SPO2_HISTORY_HOURS), []),
-    },
+    bloodOxygen: safe(() => bloodOxygen.getLastFewHour(SPO2_HISTORY_HOURS), []),
 
     steps: {
       current: safe(() => step.getCurrent(), undefined),
@@ -115,22 +110,20 @@ export function buildPayload() {
       current: safe(() => calorie.getCurrent(), undefined),
       target: safe(() => calorie.getTarget(), undefined),
     },
-    fat_burning: {
+    fatBurning: {
       current: safe(() => fatBurning.getCurrent(), undefined),
       target: safe(() => fatBurning.getTarget(), undefined),
     },
-    stands: {
+    stand: {
       current: safe(() => stand.getCurrent(), undefined),
       target: safe(() => stand.getTarget(), undefined),
     },
-    distance: {
-      current: safe(() => distance.getCurrent(), undefined),
-    },
+    distance: safe(() => distance.getCurrent(), undefined),
 
-    heart_rate: {
+    heartRate: {
       last: safe(() => heartRate.getLast(), undefined),
       resting: safe(() => heartRate.getResting(), undefined),
-      summary: dailyHrSummary ? { maximum: dailyHrSummary.maximum } : undefined,
+      maxToday: dailyHrSummary ? dailyHrSummary.maximum : undefined,
     },
 
     sleep: {
@@ -148,7 +141,7 @@ export function buildPayload() {
     pai: {
       week: safe(() => pai.getTotal(), undefined),
       day: safe(() => pai.getToday(), undefined),
-      last_week: safe(() => pai.getLastWeek(), undefined),
+      lastWeek: safe(() => pai.getLastWeek(), undefined),
     },
 
     workout: {
@@ -157,6 +150,6 @@ export function buildPayload() {
     },
 
     // 0: not worn, 1: worn/stationary, 2: worn/in motion, 3: uncertain.
-    is_wearing: safe(() => wear.getStatus(), undefined),
+    isWearing: safe(() => wear.getStatus(), undefined),
   }
 }

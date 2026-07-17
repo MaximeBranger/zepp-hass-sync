@@ -9,14 +9,6 @@ export function Deferred() {
   return defer
 }
 
-export function delay(ms) {
-  const defer = Deferred()
-
-  setTimeout(defer.resolve, ms)
-
-  return defer.promise
-}
-
 export function timeout(ms, cb) {
   const defer = Deferred()
   ms = ms || 1000

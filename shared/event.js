@@ -35,8 +35,4 @@ export class EventBus {
       cb && cb(...args)
     }
   }
-
-  count(type) {
-    return this.map.get(type) ? this.map.get(type).length : 0
-  }
 }
