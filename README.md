@@ -2,7 +2,7 @@
 
 <img src="assets/default.b/icon.png" alt="zepp-hass-sync logo" width="200"/>
 
-A Zepp OS watch app for the Amazfit GTR 4 that pushes health/fitness data to
+A Zepp OS watch app that pushes health/fitness data to
 [zepp2hass](https://github.com/davidepalleschi/zepp2hass), a Home Assistant custom
 integration, via its webhook.
 
@@ -42,7 +42,7 @@ outcome and timestamp of the last sync attempt. Built incrementally.
 | Amazfit Bip 6 | ✅ | ✅ | ❌ |
 | Amazfit Balance 2 / Balance 2 XT | ✅ | ✅ | ❌ |
 | Amazfit Rome | ✅ | ✅ | ❌ |
-| Amazfit GTR 4 (Zepp OS 3.0 / 3.5) | ✅ | ✅ | ❌ |
+| Amazfit GTR 4 (Zepp OS 3.0 / 3.5) | ✅ | ✅ | ✅ |
 | Amazfit GTR 4 Limited Edition | ✅ | ✅ | ❌ |
 | Amazfit GTS 4 | ✅ | ✅ | ❌ |
 | Amazfit Balance | ✅ | ✅ | ❌ |
