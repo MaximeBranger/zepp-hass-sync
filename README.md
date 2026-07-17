@@ -1,5 +1,7 @@
 # zepp-hass-sync
 
+<img src="assets/default.b/icon.png" alt="zepp-hass-sync logo" width="200"/>
+
 A Zepp OS watch app for the Amazfit GTR 4 that pushes health/fitness data to
 [zepp2hass](https://github.com/davidepalleschi/zepp2hass), a Home Assistant custom
 integration, via its webhook.
