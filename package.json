@@ -1,0 +1,14 @@
+{
+  "name": "zepp-hass-sync",
+  "version": "1.0.0",
+  "description": "Zepp OS watch app that syncs Amazfit GTR4 health data to Home Assistant via the zepp2hass webhook",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@zeppos/device-types": "^3.0.0"
+  }
+}

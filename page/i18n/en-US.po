@@ -1,0 +1,5 @@
+msgid "lastSync"
+msgstr "Last sync"
+
+msgid "noSyncYet"
+msgstr "No sync yet"

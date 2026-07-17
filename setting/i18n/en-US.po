@@ -1,0 +1,5 @@
+msgid "webhookUrlLabel"
+msgstr "zepp2hass webhook URL"
+
+msgid "intervalLabel"
+msgstr "Sync interval (minutes)"

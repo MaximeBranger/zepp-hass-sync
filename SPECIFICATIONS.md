@@ -41,9 +41,15 @@ Local reference clone of the HA integration used to derive the payload schema be
   `hmSensor`** API rather than the modern `@zos/sensor` module. Needs verification
   against the GTR 4 Zepp OS 3.x SDK — if unavailable via the modern API, blood oxygen
   may need the legacy sensor path or may be dropped from phase 1.
-- Network: outgoing HTTP calls from the watch app go through the Zepp mobile app's
-  Bluetooth-forwarded connection (`@zos/net` fetch), so the watch does not need its
-  own Wi-Fi — only a paired phone with internet access.
+- Network: **verified against the installed Zepp OS 3.0 SDK typings —
+  `fetch()` is only available in the phone-side `app-side` JS context, never in
+  watch-side code (device `page` or background `app-service`).** The watch cannot
+  make its own HTTP calls, even relayed. The watch-side background service must
+  send the assembled payload to the phone's `app-side` component over BLE
+  (`MessageBuilder` request/response), and `app-side` performs the actual `fetch()`
+  POST to the webhook URL using the phone's internet connection. The watch does not
+  need its own Wi-Fi — only a paired phone with internet access — but the POST
+  itself happens on the phone, not the watch.
 
 ## 4. Webhook payload schema (target: full parity)
 
@@ -112,21 +118,36 @@ re-check against that repo if it changes). Dot paths are JSON paths in the POST 
 
 ## 5. Architecture
 
-- **Sync engine:** Zepp OS background **side-service**, woken on a periodic timer.
-  On each wake: read all phase-1 sensors listed in §4, assemble the JSON payload,
-  POST it to the configured webhook URL via `@zos/net` fetch.
+Verified against the installed Zepp OS 3.0 SDK (`@zeppos/device-types`) and the
+`zeus-cli` reference templates — revised from the original all-on-watch design
+once it became clear `fetch()` only exists in the phone-side `app-side` context.
+Three components, two devices:
+
+- **Watch — `app-service`** (Zepp OS's actual name for the background service;
+  registered under `targets.default.module.app-service` in `app.json`, started via
+  `@zos/app-service` `start()`, permission `device:os.bg_service`): woken
+  periodically. On each wake: read all phase-1 sensors listed in §4 via
+  `@zos/sensor` / `@zos/user`, assemble the JSON payload, and send it to the phone's
+  `app-side` component over BLE (`MessageBuilder` request). Also requests the
+  current webhook URL/interval from `app-side` (or consumes the last value pushed
+  to it) since the watch cannot read phone-side settings storage directly.
+- **Phone — `app-side`**: receives the payload over BLE, reads the webhook URL from
+  `settingsStorage`, performs the actual `fetch()` POST to the configured webhook,
+  and responds to the watch with success/failure (feeds `last_error` in the
+  payload's device/diagnostic fields). Also listens for `settingsStorage` changes
+  and pushes the updated URL/interval to the watch over BLE so `app-service` can
+  reschedule its wake timer without waiting for its next cycle.
 - **Configuration:** phone-side `settings.js` page (rendered inside the Zepp mobile
   app under Device Application Settings), exposing:
   - Webhook URL (text input)
   - Sync interval (user-customizable; matches the original app's behavior where
     default was 1 minute, adjustable e.g. 1–5+ min to trade off freshness vs
     battery)
-  - Settings are synced from phone to the watch app via Zepp OS Settings storage;
-    values are read by the side-service on each wake (or on a settings-changed
-    event, TBD during implementation).
+  - Values are persisted via `settingsStorage.setItem`/`getItem` (phone-side only);
+    relayed to the watch over BLE as described above.
 - **Foreground app screen:** minimal — likely just a status/"last synced" view,
   matching the original app's "Apply settings" affordance if one turns out to be
-  necessary for the side-service to pick up new settings.
+  necessary for `app-service` to pick up new settings promptly.
 
 ## 6. Tooling / dev environment
 
@@ -140,19 +161,65 @@ re-check against that repo if it changes). Dot paths are JSON paths in the POST 
   submission (per the Kiezelpay/app-store article) is out of scope unless/until the
   app is ready to publish.
 
-## 7. Open risks / unknowns to validate once scaffolding starts
+## 7. Open risks / unknowns
 
-1. Whether `Step`, `Calorie`, `Distance`, and `SPO2` are exposed via the modern
-   `@zos/sensor` API on GTR4's Zepp OS 3.x, or require the legacy `hmSensor` 1.0 API.
-2. Whether `user.*` (age/height/weight/gender/region/birth) and `device.*` fields
-   require an explicit permission grant/consent prompt in `app.json`, and what Zepp
-   OS actually allows a third-party app to read vs. what the original (closed-source)
-   zepp2hass app had privileged access to.
-3. Background side-service execution limits on Zepp OS (wake frequency, CPU/time
-   budget per wake, whether network calls are reliably completed before suspension).
-4. Exact settings-sync mechanism between phone-side `settings.js` and the watch-side
-   side-service (poll on wake vs. push event) — needs confirming against current
-   Zepp OS SDK docs during implementation.
+Resolved by inspecting the installed `@zeppos/device-types` 3.0 typings and
+`zeus-cli` reference templates:
+
+- ~~Whether `Step`, `Calorie`, `Distance`, and `SPO2` are exposed via the modern
+  `@zos/sensor` API~~ — **resolved: yes.** `Step`, `Calorie`, `Distance`, and
+  `BloodOxygen` are all first-class classes in `@zos/sensor` at API level 3.0
+  (permission codes `data:user.hd.step`, `.calorie`, `.distance`, `.spo2`). No
+  legacy `hmSensor` fallback needed.
+- ~~Exact settings-sync mechanism between phone-side `settings.js` and the
+  watch-side background service~~ — **resolved:** see §5. Phone-side
+  `settingsStorage` only; relayed to the watch over BLE, not read directly.
+- ~~Network path for the webhook POST~~ — **resolved: not what was assumed.** See
+  §3/§5 — `fetch()` is phone-side only (`app-side`), not available in watch-side
+  `app-service`.
+
+**Confirmed gap vs. §4 schema — "full field parity" (§2 goal) is not fully
+achievable with Zepp OS 3.0's documented API.** Extracted by grepping the full
+installed `@zeppos/device-types` typings (~10800 lines); these fields have **no
+API at all** and are omitted from the phase-1 payload rather than guessed/faked:
+
+- `battery.is_charging` — grepped the entire typings file for "charging": zero
+  matches, in any module. There is no charging-state API in Zepp OS 3.0. The HA
+  "Is Charging" binary sensor cannot be driven in phase 1.
+- `workout.history[].sportType` — `Workout.getHistory()` returns only
+  `{startTime, duration}`, no sport-type field.
+- Most of `device.*` — only `width, height, screenShape, deviceName, keyNumber,
+  deviceSource, keyType, deviceColor, uuid` exist (via `@zos/device
+  getDeviceInfo()`). `hasNFC, hasMic, hasCrown, hasBuzzer, hasSpeaker, productId,
+  productVer, skuId, barHeight, pixelFormat, bleAddr, btAddr, wifiAddr` do not
+  exist anywhere in the typings.
+- `screen.light` exists (`Screen.getLight()`) but is tagged `@version 3.6` in the
+  typings — GTR4 targets Zepp OS 3.0/3.5 (§3), so this may not work at runtime
+  despite compiling. To be validated on-device.
+- `user.birth`, `user.appVersion`, `user.appPlatform`, `user.uuid` — no API (see
+  below, already noted).
+
+These gaps could not be cross-checked against zepp2hass's actual Python parsing
+(`custom_components/zepp2hass/sensors/*.py`, the reference clone lives on a
+different machine than this dev environment) to confirm whether missing keys are
+handled gracefully on the HA side — **validate against a real HA instance once
+end-to-end sync works.**
+
+Still open, to validate once sensor code is written against the simulator/device:
+
+1. Whether `user.*` (age/height/weight/gender/region) and `device.*` fields require
+   an explicit permission grant/consent prompt beyond the `data:user.info` /
+   `data:os.device.info` permission codes, and what Zepp OS actually allows a
+   third-party app to read vs. what the original (closed-source) zepp2hass app had
+   privileged access to. Confirmed unavailable from `@zos/user getProfile()`:
+   `birth`, `appVersion`, `appPlatform`, `uuid` — these `user.*` schema fields (§4)
+   will need to be omitted or defaulted in phase 1 unless another source is found.
+2. Background `app-service` execution limits on Zepp OS (wake frequency, CPU/time
+   budget per wake, whether the BLE round-trip to `app-side` reliably completes
+   before the service suspends).
+3. BLE message-passing reliability/latency between watch `app-service` and phone
+   `app-side` when the watch app itself is not in the foreground (todo-list/fetch-api
+   reference templates only demonstrate this from an open foreground page).
 
 ## 8. Phasing
 

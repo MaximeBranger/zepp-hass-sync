@@ -1,0 +1,73 @@
+{
+  "configVersion": "v3",
+  "app": {
+    "appId": 26059,
+    "appName": "Hass Sync",
+    "appType": "app",
+    "version": {
+      "code": 1,
+      "name": "1.0.0"
+    },
+    "icon": "icon.png",
+    "vender": "zepp",
+    "description": "Syncs Zepp OS health data to Home Assistant via the zepp2hass webhook"
+  },
+  "permissions": [
+    "data:os.device.info",
+    "device:os.local_storage",
+    "device:os.bg_service",
+    "device:os.alarm",
+    "data:user.info",
+    "data:user.hd.step",
+    "data:user.hd.calorie",
+    "data:user.hd.distance",
+    "data:user.hd.heart_rate",
+    "data:user.hd.sleep",
+    "data:user.hd.stress",
+    "data:user.hd.spo2",
+    "data:user.hd.pai",
+    "data:user.hd.workout",
+    "data:user.hd.body_temp",
+    "data:user.hd.fat_burning",
+    "data:user.hd.stand"
+  ],
+  "runtime": {
+    "apiVersion": {
+      "compatible": "3.0.0",
+      "target": "3.0.0",
+      "minVersion": "3.0"
+    }
+  },
+  "targets": {
+    "default": {
+      "module": {
+        "page": {
+          "pages": [
+            "page/index"
+          ]
+        },
+        "app-side": {
+          "path": "app-side/index"
+        },
+        "setting": {
+          "path": "setting/index"
+        },
+        "app-service": {
+          "path": "app-service/index"
+        }
+      },
+      "platforms": [
+        {
+          "st": "r",
+          "dw": 480
+        }
+      ]
+    }
+  },
+  "i18n": {
+    "en-US": {
+      "appName": "Hass Sync"
+    }
+  },
+  "defaultLanguage": "en-US"
+}
