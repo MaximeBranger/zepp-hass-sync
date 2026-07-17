@@ -27,6 +27,27 @@ outcome and timestamp of the last sync attempt. Built incrementally.
 
 | Device | Planned | Implemented | Tested |
 | --- | --- | --- | --- |
+| Amazfit Balance 3 / Balance 3 Ti | ✅ | ✅ | ❌ |
+| Amazfit Balance Ultra | ✅ | ✅ | ❌ |
+| Amazfit Cheetah 2 Ultra | ✅ | ✅ | ❌ |
+| Amazfit Bip Max | ✅ | ✅ | ❌ |
+| Amazfit Cheetah 2 Pro | ✅ | ✅ | ❌ |
+| Amazfit T-Rex Ultra 2 | ✅ | ✅ | ❌ |
+| Amazfit Active 3 Premium | ✅ | ✅ | ❌ |
+| Amazfit T-Rex 3 / T-Rex 3 Pro | ✅ | ✅ | ❌ |
+| Amazfit Active Max | ✅ | ✅ | ❌ |
+| Amazfit Active 2 (Round) | ✅ | ✅ | ❌ |
+| Amazfit Bip 6 | ✅ | ✅ | ❌ |
+| Amazfit Balance 2 / Balance 2 XT | ✅ | ✅ | ❌ |
+| Amazfit Rome | ✅ | ✅ | ❌ |
 | Amazfit GTR 4 (Zepp OS 3.0 / 3.5) | ✅ | ✅ | ❌ |
+| Amazfit GTR 4 Limited Edition | ✅ | ✅ | ❌ |
+| Amazfit GTS 4 | ✅ | ✅ | ❌ |
+| Amazfit Balance | ✅ | ✅ | ❌ |
+| Amazfit Cheetah / Cheetah Pro / Cheetah (Square) | ✅ | ✅ | ❌ |
+| Amazfit T-Rex Ultra | ✅ | ✅ | ❌ |
+| Amazfit Falcon | ✅ | ✅ | ❌ |
+| Amazfit Active Edge | ✅ | ✅ | ❌ |
+| Amazfit Bip 5 Unity / Core | ✅ | ✅ | ❌ |
 
 This table will be updated as the app is released and tested on more devices.
