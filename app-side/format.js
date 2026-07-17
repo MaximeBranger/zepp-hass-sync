@@ -1,6 +1,6 @@
 // Maps our raw watch->phone payload (page/sensors.js `readSensors()`) to the JSON
-// shape zepp2hass expects (custom_components/zepp2hass/sensors/*.py — see
-// SPECIFICATIONS.md §4). Fields with no API on Zepp OS 3.0 (battery.is_charging,
+// shape zepp2hass expects (custom_components/zepp2hass/sensors/*.py). Fields with
+// no API on Zepp OS 3.0 (battery.is_charging,
 // workout.history[].sportType, most of device.*, user.birth/appVersion/
 // appPlatform/uuid, trigger.*, last_error) are omitted rather than faked.
 export function formatForZepp2Hass(payload) {

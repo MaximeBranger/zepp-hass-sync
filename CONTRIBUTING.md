@@ -6,9 +6,6 @@ compatibility with zepp2hass, and testing on devices other than the GTR 4.
 
 ## Before you start
 
-- Read [SPECIFICATIONS.md](SPECIFICATIONS.md) for the target payload schema,
-  architecture, and current phase — it explains the *why* behind most design
-  decisions.
 - For anything beyond a small fix, open an issue first to discuss the approach.
 
 ## Development
@@ -28,7 +25,9 @@ on a simulator or a real Amazfit GTR 4.
 ## Making changes
 
 - Keep the payload shape sent to zepp2hass compatible — see
-  [SPECIFICATIONS.md](SPECIFICATIONS.md) for the schema it must match.
+  [app-side/format.js](app-side/format.js) and the target schema in
+  [zepp2hass](https://github.com/davidepalleschi/zepp2hass)'s
+  `custom_components/zepp2hass/sensors/*.py`.
 - Match the existing code style (no build step/linter is enforced yet).
 - Test on-device or in the simulator before opening a PR; note what you tested
   in the PR description.

@@ -10,8 +10,7 @@ source isn't public, and the issue has never been fixed. zepp-hass-sync is an
 independent, open-source replacement for that watch app, built to send the same
 webhook payload shape so it drops in as a working substitute.
 
-See [SPECIFICATIONS.md](SPECIFICATIONS.md) for the full design: target payload
-schema, architecture, phasing, and open risks.
+See [TUTORIAL.md](TUTORIAL.md) for install and configuration instructions.
 
 ## Status
 
@@ -22,9 +21,12 @@ configured" instead of sending). Triggered either by tapping Sync on the watch, 
 automatically every N minutes via a background `app-service` + alarm; N can be
 adjusted from the watch face itself (+/- buttons) or from the phone-side Settings
 screen, and both stay in sync. The watch face and the Settings screen each show the
-outcome and timestamp of the last sync attempt. Built incrementally — see
-[SPECIFICATIONS.md](SPECIFICATIONS.md) §2 for the plan.
+outcome and timestamp of the last sync attempt. Built incrementally.
 
-## Target device
+## Compatible Devices
 
-Amazfit GTR 4 (Zepp OS 3.0 / 3.5).
+| Device | Planned | Implemented | Tested |
+| --- | --- | --- | --- |
+| Amazfit GTR 4 (Zepp OS 3.0 / 3.5) | ✅ | ✅ | ❌ |
+
+This table will be updated as the app is released and tested on more devices.

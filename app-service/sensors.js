@@ -35,7 +35,7 @@ function safe(fn, fallback) {
 // Raw values read straight off the watch's sensors — no zepp2hass shaping here,
 // that happens phone-side in app-side/format.js. Fields with no API on Zepp OS 3.0
 // (charging state, workout sportType, most of device.*, user.birth/appVersion/
-// appPlatform/uuid) are simply absent — see SPECIFICATIONS.md §7.
+// appPlatform/uuid) are simply absent.
 export function readSensors() {
   // Each sensor is constructed independently so one failing constructor can't
   // take down the whole payload.
