@@ -3,17 +3,12 @@ import { MessageBuilder } from '../shared/message'
 import { getPackageInfo } from '@zos/app'
 import { log as Logger } from '@zos/utils'
 import * as ble from '@zos/ble'
-import * as alarmMgr from '@zos/alarm'
 import { exit } from '@zos/app-service'
 import { localStorage as deviceStorage } from '@zos/storage'
 import { readSensors } from './sensors'
-import {
-  APP_SERVICE_FILE,
-  DEFAULT_INTERVAL_MINUTES,
-  LOCAL_STORAGE_KEY_ALARM_ID,
-  LOCAL_STORAGE_KEY_INTERVAL_MINUTES,
-  MESSAGE_METHOD_SYNC,
-} from '../shared/constants'
+import { scheduleNext } from '../shared/alarm'
+import { recordSyncResult } from '../shared/sync-status'
+import { DEFAULT_INTERVAL_MINUTES, LOCAL_STORAGE_KEY_INTERVAL_MINUTES, MESSAGE_METHOD_SYNC } from '../shared/constants'
 
 const logger = Logger.getLogger('hass-sync-service')
 
@@ -28,24 +23,6 @@ function withTimeout(promise, ms, message) {
       setTimeout(() => reject(new Error(message)), ms)
     }),
   ])
-}
-
-// Cancels any previous alarm and arms the next one `intervalMinutes` from now,
-// persisting both the new alarm id and the interval used (so the next wake, and
-// app.js's self-heal check, both see the current value).
-function scheduleNext(intervalMinutes) {
-  const oldAlarmId = deviceStorage.getItem(LOCAL_STORAGE_KEY_ALARM_ID, 0)
-  if (oldAlarmId) {
-    alarmMgr.cancel(oldAlarmId)
-  }
-  const newAlarmId = alarmMgr.set({
-    url: APP_SERVICE_FILE,
-    delay: Math.max(1, intervalMinutes) * 60,
-    repeat_type: alarmMgr.REPEAT_ONCE,
-    store: true,
-  })
-  deviceStorage.setItem(LOCAL_STORAGE_KEY_ALARM_ID, newAlarmId)
-  deviceStorage.setItem(LOCAL_STORAGE_KEY_INTERVAL_MINUTES, intervalMinutes)
 }
 
 AppService({
@@ -83,8 +60,10 @@ AppService({
       if (result && result.intervalMinutes) {
         scheduleNext(result.intervalMinutes)
       }
+      recordSyncResult({ ok: result && result.ok, error: result && result.error, configured: result && result.configured })
     } catch (error) {
       logger.error('runSync failed: ' + ((error && error.message) || error))
+      recordSyncResult({ ok: false, error: (error && error.message) || String(error) })
     } finally {
       try {
         messageBuilder && messageBuilder.disConnect()

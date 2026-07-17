@@ -1,5 +1,36 @@
 import { gettext } from 'i18n'
-import { DEFAULT_INTERVAL_MINUTES, SETTINGS_KEY_INTERVAL_MINUTES, SETTINGS_KEY_WEBHOOK_URL } from '../shared/constants'
+import { formatDateTime } from '../shared/format-time'
+import {
+  SETTINGS_KEY_INTERVAL_MINUTES,
+  SETTINGS_KEY_LAST_SYNC_ERROR,
+  SETTINGS_KEY_LAST_SYNC_OK,
+  SETTINGS_KEY_LAST_SYNC_TIME,
+  SETTINGS_KEY_WEBHOOK_URL,
+  clampIntervalMinutes,
+} from '../shared/constants'
+
+const GROUP_STYLE = {
+  padding: '10px',
+  marginBottom: '12px',
+  border: '1px solid #eaeaea',
+  borderRadius: '6px',
+}
+
+function buildStatusText(settingsStorage) {
+  const lastSyncTime = parseInt(settingsStorage.getItem(SETTINGS_KEY_LAST_SYNC_TIME), 10)
+  if (!lastSyncTime) {
+    return gettext('statusNeverSynced')
+  }
+
+  const when = formatDateTime(lastSyncTime)
+  const ok = settingsStorage.getItem(SETTINGS_KEY_LAST_SYNC_OK) === 'true'
+  if (ok) {
+    return `${gettext('statusOk')} — ${when}`
+  }
+
+  const error = settingsStorage.getItem(SETTINGS_KEY_LAST_SYNC_ERROR) || ''
+  return `${gettext('statusFailed')}: ${error} (${when})`
+}
 
 AppSettingsPage({
   state: {
@@ -11,15 +42,16 @@ AppSettingsPage({
   },
 
   setIntervalMinutes(value) {
-    const parsed = parseInt(value, 10)
-    const minutes = Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_INTERVAL_MINUTES
+    const minutes = clampIntervalMinutes(value)
     this.state.props.settingsStorage.setItem(SETTINGS_KEY_INTERVAL_MINUTES, String(minutes))
   },
 
   build(props) {
     this.state.props = props
-    const webhookUrl = props.settingsStorage.getItem(SETTINGS_KEY_WEBHOOK_URL) || ''
-    const intervalMinutes = props.settingsStorage.getItem(SETTINGS_KEY_INTERVAL_MINUTES) || String(DEFAULT_INTERVAL_MINUTES)
+    const settingsStorage = props.settingsStorage
+    const webhookUrl = settingsStorage.getItem(SETTINGS_KEY_WEBHOOK_URL) || ''
+    const intervalMinutes = clampIntervalMinutes(settingsStorage.getItem(SETTINGS_KEY_INTERVAL_MINUTES))
+    const statusText = buildStatusText(settingsStorage)
 
     return View(
       {
@@ -28,26 +60,26 @@ AppSettingsPage({
         },
       },
       [
-        View(
-          {
-            style: {
-              marginBottom: '12px',
-            },
-          },
-          [
-            TextInput({
-              label: gettext('webhookUrlLabel'),
-              placeholder: gettext('webhookUrlPlaceholder'),
-              value: webhookUrl,
-              onChange: (value) => this.setWebhookUrl(value),
-            }),
-          ],
-        ),
-        View({}, [
+        View({ style: GROUP_STYLE }, [
+          TextInput({
+            label: gettext('webhookUrlLabel'),
+            placeholder: gettext('webhookUrlPlaceholder'),
+            value: webhookUrl,
+            onChange: (value) => this.setWebhookUrl(value),
+          }),
+        ]),
+        View({ style: GROUP_STYLE }, [
           TextInput({
             label: gettext('intervalLabel'),
-            value: intervalMinutes,
+            value: String(intervalMinutes),
             onChange: (value) => this.setIntervalMinutes(value),
+          }),
+        ]),
+        View({ style: { ...GROUP_STYLE, marginBottom: 0 } }, [
+          TextInput({
+            label: gettext('statusLabel'),
+            value: statusText,
+            disabled: true,
           }),
         ]),
       ],

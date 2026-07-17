@@ -5,4 +5,16 @@ msgid "webhookUrlPlaceholder"
 msgstr "https://your-home-assistant/api/webhook/..."
 
 msgid "intervalLabel"
-msgstr "Sync interval (minutes)"
+msgstr "Sync interval in minutes (1-180)"
+
+msgid "statusLabel"
+msgstr "Last sync"
+
+msgid "statusNeverSynced"
+msgstr "Never synced yet"
+
+msgid "statusOk"
+msgstr "OK"
+
+msgid "statusFailed"
+msgstr "Failed"
