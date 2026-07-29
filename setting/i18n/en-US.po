@@ -1,13 +1,25 @@
+msgid "webhookSectionTitle"
+msgstr "Home Assistant"
+
+msgid "webhookSectionDescription"
+msgstr "Paste the zepp2hass webhook URL from Home Assistant here."
+
 msgid "webhookUrlLabel"
-msgstr "zepp2hass webhook URL"
+msgstr "Webhook URL"
 
 msgid "webhookUrlPlaceholder"
 msgstr "https://your-home-assistant/api/webhook/..."
 
-msgid "intervalLabel"
-msgstr "Sync interval in minutes (1-180)"
+msgid "intervalSectionTitle"
+msgstr "Sync interval"
 
-msgid "statusLabel"
+msgid "intervalSectionDescription"
+msgstr "How often the watch pushes data to Home Assistant."
+
+msgid "intervalUnit"
+msgstr "minutes"
+
+msgid "statusSectionTitle"
 msgstr "Last sync"
 
 msgid "statusNeverSynced"
