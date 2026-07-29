@@ -11,7 +11,6 @@ const {
   MessageType,
   MessagePayloadOpCode,
   MessagePayloadDataTypeOp,
-  DataType,
   getDataType,
   genTraceId,
   genSpanId,

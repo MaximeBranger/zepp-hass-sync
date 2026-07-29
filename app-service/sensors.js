@@ -27,7 +27,7 @@ function safe(fn, fallback) {
   try {
     const value = fn()
     return value === undefined || value === null ? fallback : value
-  } catch (error) {
+  } catch {
     return fallback
   }
 }

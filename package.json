@@ -4,7 +4,8 @@
   "description": "Zepp OS watch app that pushes health/fitness data to Home Assistant via the zepp2hass webhook",
   "main": "app.js",
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint": "eslint ."
   },
   "author": "",
   "license": "MIT",
