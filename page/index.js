@@ -80,6 +80,14 @@ Page({
         logger.log('got response: ' + JSON.stringify(result))
         recordSyncResult({ ok: result && result.ok, error: result && result.error, configured: result && result.configured })
         this.renderStatus(getSyncStatus())
+
+        if (result && result.intervalMinutes && result.intervalMinutes !== this.state.intervalMinutes) {
+          const applied = result.intervalMinutes
+          deviceStorage.setItem(LOCAL_STORAGE_KEY_INTERVAL_MINUTES, applied)
+          scheduleNext(applied)
+          this.state.intervalMinutes = applied
+          this.renderInterval(applied)
+        }
       })
       .catch((error) => {
         logger.error('request failed: ' + ((error && error.message) || error))
