@@ -73,6 +73,21 @@
   "i18n": {
     "en-US": {
       "appName": "Hass Sync"
+    },
+    "fr-FR": {
+      "appName": "Hass Sync"
+    },
+    "de-DE": {
+      "appName": "Hass Sync"
+    },
+    "es-ES": {
+      "appName": "Hass Sync"
+    },
+    "it-IT": {
+      "appName": "Hass Sync"
+    },
+    "zh-CN": {
+      "appName": "Hass Sync"
     }
   },
   "defaultLanguage": "en-US"

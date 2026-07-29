@@ -1,0 +1,32 @@
+msgid "webhookSectionTitle"
+msgstr "Home Assistant"
+
+msgid "webhookSectionDescription"
+msgstr "Collez ici l'URL du webhook zepp2hass depuis Home Assistant."
+
+msgid "webhookUrlLabel"
+msgstr "URL du webhook"
+
+msgid "webhookUrlPlaceholder"
+msgstr "https://votre-home-assistant/api/webhook/..."
+
+msgid "intervalSectionTitle"
+msgstr "Intervalle de synchronisation"
+
+msgid "intervalSectionDescription"
+msgstr "Fréquence à laquelle la montre envoie les données à Home Assistant."
+
+msgid "intervalUnit"
+msgstr "minutes"
+
+msgid "statusSectionTitle"
+msgstr "Dernière synchronisation"
+
+msgid "statusNeverSynced"
+msgstr "Jamais synchronisé"
+
+msgid "statusOk"
+msgstr "OK"
+
+msgid "statusFailed"
+msgstr "Échec"

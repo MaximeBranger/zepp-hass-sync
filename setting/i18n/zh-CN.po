@@ -1,0 +1,32 @@
+msgid "webhookSectionTitle"
+msgstr "Home Assistant"
+
+msgid "webhookSectionDescription"
+msgstr "在此粘贴来自 Home Assistant 的 zepp2hass Webhook 地址。"
+
+msgid "webhookUrlLabel"
+msgstr "Webhook 地址"
+
+msgid "webhookUrlPlaceholder"
+msgstr "https://your-home-assistant/api/webhook/..."
+
+msgid "intervalSectionTitle"
+msgstr "同步间隔"
+
+msgid "intervalSectionDescription"
+msgstr "手表向 Home Assistant 推送数据的频率。"
+
+msgid "intervalUnit"
+msgstr "分钟"
+
+msgid "statusSectionTitle"
+msgstr "上次同步"
+
+msgid "statusNeverSynced"
+msgstr "尚未同步"
+
+msgid "statusOk"
+msgstr "正常"
+
+msgid "statusFailed"
+msgstr "失败"
