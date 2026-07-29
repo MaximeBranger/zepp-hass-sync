@@ -2,11 +2,11 @@
   "configVersion": "v3",
   "app": {
     "appId": 1120685,
-    "appName": "Hass Sync",
+    "appName": "zepp-hass-sync",
     "appType": "app",
     "version": {
       "code": 1,
-      "name": "1.0.0"
+      "name": "1.1.0"
     },
     "icon": "icon.png",
     "vender": "zepp",
