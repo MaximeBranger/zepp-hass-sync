@@ -9,9 +9,15 @@ import { APP_SERVICE_FILE, DEFAULT_INTERVAL_MINUTES, LOCAL_STORAGE_KEY_ALARM_ID,
 // Cancels any previous alarm and arms the next one `intervalMinutes` from now, persisting both
 // the new alarm id and the interval used (so the next wake, and the self-heal check below, both
 // see the current value).
+//
+// Called from app-service/index.js's onInit — i.e. from *inside* the callback of the alarm that
+// just fired. A REPEAT_ONCE alarm is consumed the moment it fires, so the stored id at that point
+// refers to an alarm that no longer exists. alarmMgr.cancel() on a dead id throws, which — since
+// this runs before runSync() — would silently kill the entire background sync loop after a single
+// cycle. Only cancel when the id is still present in getAllAlarms() (mirrors ensureAlarmScheduled).
 export function scheduleNext(intervalMinutes) {
   const oldAlarmId = deviceStorage.getItem(LOCAL_STORAGE_KEY_ALARM_ID, 0)
-  if (oldAlarmId) {
+  if (oldAlarmId && alarmMgr.getAllAlarms().includes(oldAlarmId)) {
     alarmMgr.cancel(oldAlarmId)
   }
   const newAlarmId = alarmMgr.set({
