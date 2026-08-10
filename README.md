@@ -36,7 +36,7 @@ outcome and timestamp of the last sync attempt. Built incrementally.
 | Amazfit Cheetah 2 Pro | ✅ | ✅ | ❌ |
 | Amazfit T-Rex Ultra 2 | ✅ | ✅ | ❌ |
 | Amazfit Active 3 Premium | ✅ | ✅ | ❌ |
-| Amazfit T-Rex 3 / T-Rex 3 Pro | ✅ | ✅ | ❌ |
+| Amazfit T-Rex 3 / T-Rex 3 Pro | ✅ | ✅ | ✅ |
 | Amazfit Active Max | ✅ | ✅ | ❌ |
 | Amazfit Active 2 (Round) | ✅ | ✅ | ❌ |
 | Amazfit Bip 6 | ✅ | ✅ | ❌ |
