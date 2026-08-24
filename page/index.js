@@ -1,15 +1,22 @@
 import { createWidget, widget, prop } from '@zos/ui'
 import { log as Logger } from '@zos/utils'
-import { localStorage as deviceStorage } from '@zos/storage'
+import { getPackageInfo } from '@zos/app'
+import * as ble from '@zos/ble'
 import * as Styles from 'zosLoader:./index.[pf].layout.js'
+import { MessageBuilder } from '../shared/message'
 import { readSensors } from '../app-service/sensors'
-import { getAlarmDiagnostics, scheduleNext } from '../shared/alarm'
-import { getSyncStatus, recordSyncResult } from '../shared/sync-status'
+import { readStoredInterval, writeStoredInterval } from '../shared/interval-storage'
+import {
+  getLastServiceStart,
+  getLastServiceStartResult,
+  getLastTimerAvailable,
+  getSyncStatus,
+  recordSyncResult,
+} from '../shared/sync-status'
 import { formatDateTime } from '../shared/format-time'
 import {
   DEFAULT_INTERVAL_MINUTES,
   INTERVAL_STEP_MINUTES,
-  LOCAL_STORAGE_KEY_INTERVAL_MINUTES,
   MESSAGE_METHOD_SET_INTERVAL,
   MESSAGE_METHOD_SYNC,
   clampIntervalMinutes,
@@ -34,6 +41,32 @@ function describeStatus(status) {
   if (status.configured === false) return { text: 'Webhook not configured', color: COLOR_WARN }
   if (status.ok) return { text: 'OK', color: COLOR_OK }
   return { text: `Failed: ${truncate(status.error)}`, color: COLOR_FAIL }
+}
+
+// Opens a short-lived BLE connection for exactly one request, then closes it — the same transient
+// pattern app-service/index.js's runSync() uses. `@zos/ble` represents the one physical connection
+// to the phone the whole app shares; holding a MessageBuilder connected for the page's entire open
+// duration (the old design, via app.js's globalData) fought the long-running service's own
+// connect/disconnect cycle for that shared connection, turning "Sync now" into an indefinite hang
+// on "sending..." whenever the two overlapped. Making both sides transient shrinks that overlap
+// window down to the few seconds either one is actually mid-request.
+function withBle(sendRequest) {
+  let messageBuilder
+  try {
+    const { appId } = getPackageInfo()
+    messageBuilder = new MessageBuilder({ appId, appDevicePort: 20, appSidePort: 0, ble })
+    messageBuilder.connect()
+  } catch (error) {
+    return Promise.reject(error)
+  }
+
+  return sendRequest(messageBuilder).finally(() => {
+    try {
+      messageBuilder.disConnect()
+    } catch (error) {
+      logger.error('disConnect failed: ' + ((error && error.message) || error))
+    }
+  })
 }
 
 Page({
@@ -73,9 +106,7 @@ Page({
     logger.log('sending payload: ' + JSON.stringify(payload))
     this.state.statusText.setProperty(prop.MORE, { text: 'sending...', color: COLOR_NEUTRAL })
 
-    const messageBuilder = getApp()._options.globalData.messageBuilder
-    messageBuilder
-      .request({ method: MESSAGE_METHOD_SYNC, payload }, { timeout: 15000 })
+    withBle((messageBuilder) => messageBuilder.request({ method: MESSAGE_METHOD_SYNC, payload }, { timeout: 15000 }))
       .then((result) => {
         logger.log('got response: ' + JSON.stringify(result))
         recordSyncResult({ ok: result && result.ok, error: result && result.error, configured: result && result.configured })
@@ -83,8 +114,9 @@ Page({
 
         if (result && result.intervalMinutes && result.intervalMinutes !== this.state.intervalMinutes) {
           const applied = result.intervalMinutes
-          deviceStorage.setItem(LOCAL_STORAGE_KEY_INTERVAL_MINUTES, applied)
-          scheduleNext(applied)
+          // The long service re-reads this on its own next tick — see app-service/index.js's
+          // tick(). No direct way to reach into an already-running service from this context.
+          writeStoredInterval(applied)
           this.state.intervalMinutes = applied
           this.renderInterval(applied)
         }
@@ -106,15 +138,14 @@ Page({
     this.state.intervalRequestInFlight = true
     this.state.intervalText.setProperty(prop.MORE, { text: 'updating...' })
 
-    const messageBuilder = getApp()._options.globalData.messageBuilder
-    messageBuilder
-      .request({ method: MESSAGE_METHOD_SET_INTERVAL, payload: { intervalMinutes: candidate } }, { timeout: 15000 })
+    withBle((messageBuilder) =>
+      messageBuilder.request({ method: MESSAGE_METHOD_SET_INTERVAL, payload: { intervalMinutes: candidate } }, { timeout: 15000 }),
+    )
       .then((result) => {
         this.state.intervalRequestInFlight = false
         if (result && result.ok) {
           const applied = result.intervalMinutes
-          deviceStorage.setItem(LOCAL_STORAGE_KEY_INTERVAL_MINUTES, applied)
-          scheduleNext(applied)
+          writeStoredInterval(applied)
           this.state.intervalMinutes = applied
           this.renderInterval(applied)
         } else {
@@ -144,7 +175,7 @@ Page({
       text: status.time ? `Last: ${formatDateTime(status.time)}` : 'Last: never',
     })
 
-    this.state.intervalMinutes = clampIntervalMinutes(deviceStorage.getItem(LOCAL_STORAGE_KEY_INTERVAL_MINUTES, DEFAULT_INTERVAL_MINUTES))
+    this.state.intervalMinutes = clampIntervalMinutes(readStoredInterval())
 
     createWidget(widget.BUTTON, {
       ...Styles.INTERVAL_MINUS_BUTTON_STYLE,
@@ -167,22 +198,34 @@ Page({
     this.renderDiagnostics()
   },
 
-  // Renders `alarms:N store:<type>`.
+  // Renders `st:<code> svc:<HH:MM> t:<0|1>`, on screen rather than logged because the Zepp log
+  // viewer only streams while the mini-program is in the foreground, which is not when background
+  // behaviour is interesting.
   //
-  // `alarms:` is how many alarms this app currently has pending. The app is supposed to own
-  // exactly one. Anything above 1 means alarms are leaking, and since every leaked alarm fires and
-  // arms more on each wake, the count compounds — that is both why background sync stops working
-  // (the device spends its time launching services) and why the watch can reboot.
+  // `st:` is what app.js's start() call for the long service returned this app open — 0 means
+  // success per the API docs; anything else (or `threw:...`) means the service was never even told
+  // to start, which reads as "svc: never" below forever, indistinguishable on its own from a
+  // service that started fine and then stalled.
   //
-  // `store:` is the type `localStorage` gives back for a number that was written as a number. If
-  // it reads `string`, the previous `getAllAlarms().includes(storedId)` guard was comparing a
-  // string against numbers with strict equality and could never match — the mechanism behind the
-  // leak, and invisible to the unit tests, which mock storage with a Map that preserves types.
+  // `svc:` is when the long-running app-service last *ticked* — written at the top of every
+  // runSync(), before any BLE work, so it advances every cycle regardless of what happens after. If
+  // this keeps advancing but "Last:" above never does, cycles are starting but not completing; if
+  // it stops advancing entirely (with `st:0` confirming the service *was* told to start), the tick
+  // loop itself has died.
+  //
+  // `t:` is whether `setTimeout` was actually callable in the App Service context during the last
+  // cycle. `t:0` means that cycle's BLE request ran with no deadline at all — a stuck handshake
+  // would then hang until the connection drops on its own, since nothing else in a long service
+  // was going to reclaim the context for us.
   renderDiagnostics() {
     let text
     try {
-      const { pending, storedIntervalType } = getAlarmDiagnostics()
-      text = `alarms:${pending < 0 ? '?' : pending} store:${storedIntervalType}`
+      const startResult = getLastServiceStartResult()
+      const svcStart = getLastServiceStart()
+      const timerAvailable = getLastTimerAvailable()
+      const svcTime = svcStart ? formatDateTime(svcStart).slice(-5) : 'never'
+      const timerText = timerAvailable === null ? '?' : timerAvailable ? '1' : '0'
+      text = `st:${startResult === null || startResult === undefined ? '?' : startResult} svc:${svcTime} t:${timerText}`
     } catch (error) {
       text = 'diag unavailable'
       logger.error('renderDiagnostics failed: ' + ((error && error.message) || error))

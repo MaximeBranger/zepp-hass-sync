@@ -81,9 +81,10 @@ export const SYNC_BUTTON_STYLE = {
   text: 'Sync now',
 }
 
-// Diagnostic line: pending alarm count + the type localStorage round-trips numbers as. Rendered on
-// screen rather than logged because the Zepp app's log viewer only streams while the mini-program
-// is in the foreground, which is not when background behaviour is interesting.
+// Diagnostic line: when the long-running app-service last ticked, and whether setTimeout was
+// available in that cycle. Rendered on screen rather than logged because the Zepp app's log viewer
+// only streams while the mini-program is in the foreground, which is not when background
+// behaviour is interesting. See page/index.js's renderDiagnostics().
 export const DIAGNOSTIC_TEXT_STYLE = {
   ...CENTERED_TEXT,
   x: px(20),

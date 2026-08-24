@@ -38,11 +38,8 @@ const WORKOUT_HISTORY_LIMIT = 20
 // than assuming which end the recent ones are at.
 function recentWorkouts(history) {
   if (!history || !history.length) return []
-  if (history.length <= WORKOUT_HISTORY_LIMIT) return history
-  return history
-    .slice()
-    .sort((a, b) => (a.startTime || 0) - (b.startTime || 0))
-    .slice(-WORKOUT_HISTORY_LIMIT)
+  const sorted = history.slice().sort((a, b) => (a.startTime || 0) - (b.startTime || 0))
+  return sorted.length <= WORKOUT_HISTORY_LIMIT ? sorted : sorted.slice(-WORKOUT_HISTORY_LIMIT)
 }
 
 // Wrap sensor reads that may throw (unsupported on this firmware) or return

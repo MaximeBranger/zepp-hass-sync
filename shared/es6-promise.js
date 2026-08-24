@@ -135,7 +135,7 @@ function useMessageChannel() {
 function useSetTimeout() {
   // Store setTimeout reference so es6-promise will be unaffected by
   // other code modifying setTimeout (like sinon.useFakeTimers())
-  var globalSetTimeout = typeof setTimeout !== 'undefined' ? setTimeout : null;
+  var globalSetTimeout = typeof setTimeout === 'function' ? setTimeout : null;
   if (!globalSetTimeout) {
     return function () {
       return flush();

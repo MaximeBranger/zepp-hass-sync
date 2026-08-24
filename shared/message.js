@@ -902,6 +902,7 @@ export class MessageBuilder extends EventBus {
 
           DEBUG && logger.error(`request timeout in ${opts.timeout}ms error=> %d data=> %j`, requestId, data)
           this.off('response', transact)
+          this.off('error', error)
 
           reject(Error(`Timed out in ${opts.timeout}ms.`))
         }),

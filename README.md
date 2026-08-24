@@ -20,7 +20,7 @@ Reads every available sensor and sends it to the phone over BLE, which formats i
 to the zepp2hass JSON shape and POSTs it to the webhook URL configured in the app's
 phone-side Settings screen (no URL configured → the app reports "webhook not
 configured" instead of sending). Triggered either by tapping Sync on the watch, or
-automatically every N minutes via a background `app-service` + alarm; N can be
+automatically every N minutes via a long-running background `app-service`; N can be
 adjusted from the watch face itself (+/- buttons) or from the phone-side Settings
 screen, and both stay in sync. The watch face and the Settings screen each show the
 outcome and timestamp of the last sync attempt. Built incrementally.

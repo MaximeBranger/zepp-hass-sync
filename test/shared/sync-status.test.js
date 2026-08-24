@@ -9,7 +9,16 @@ vi.mock('@zos/storage', () => ({
   },
 }))
 
-const { recordSyncResult, getSyncStatus } = await import('../../shared/sync-status')
+const {
+  getLastServiceStart,
+  getLastServiceStartResult,
+  getLastTimerAvailable,
+  recordServiceStart,
+  recordServiceStartResult,
+  recordSyncResult,
+  recordTimerAvailable,
+  getSyncStatus,
+} = await import('../../shared/sync-status')
 
 beforeEach(() => {
   store.clear()
@@ -43,5 +52,58 @@ describe('recordSyncResult / getSyncStatus', () => {
     recordSyncResult({ ok: true, configured: true })
     const status = getSyncStatus()
     expect(status.time).toBeGreaterThanOrEqual(before)
+  })
+})
+
+describe('recordServiceStart / getLastServiceStart', () => {
+  it('returns 0 before any service run has started', () => {
+    expect(getLastServiceStart()).toBe(0)
+  })
+
+  it('persists the service start time independently of recordSyncResult', () => {
+    recordServiceStart(1700000000)
+    expect(getLastServiceStart()).toBe(1700000000)
+    // A service that started but never reached recordSyncResult (e.g. cut off mid-cycle)
+    // must not look "synced" — the two are deliberately separate keys.
+    expect(getSyncStatus()).toEqual({ ok: null, error: '', time: 0, configured: null })
+  })
+
+  it('defaults time to the current time when not provided', () => {
+    const before = Math.floor(Date.now() / 1000)
+    recordServiceStart()
+    expect(getLastServiceStart()).toBeGreaterThanOrEqual(before)
+  })
+})
+
+describe('recordTimerAvailable / getLastTimerAvailable', () => {
+  it('returns null before any cycle has recorded it', () => {
+    expect(getLastTimerAvailable()).toBe(null)
+  })
+
+  it('persists true and false distinctly', () => {
+    recordTimerAvailable(true)
+    expect(getLastTimerAvailable()).toBe(true)
+
+    recordTimerAvailable(false)
+    expect(getLastTimerAvailable()).toBe(false)
+  })
+})
+
+describe('recordServiceStartResult / getLastServiceStartResult', () => {
+  it('returns null before app.js has ever called start()', () => {
+    expect(getLastServiceStartResult()).toBe(null)
+  })
+
+  it('persists a numeric success/error code', () => {
+    recordServiceStartResult(0)
+    expect(getLastServiceStartResult()).toBe(0)
+
+    recordServiceStartResult(3)
+    expect(getLastServiceStartResult()).toBe(3)
+  })
+
+  it('persists a "threw:<message>" string when start() itself throws', () => {
+    recordServiceStartResult('threw:permission denied')
+    expect(getLastServiceStartResult()).toBe('threw:permission denied')
   })
 })
