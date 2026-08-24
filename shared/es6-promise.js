@@ -6,9 +6,23 @@
  * @version   v4.2.8+1e68dce6
  */
 
+// LOCAL PATCH (not upstream): `globalThis` is ES2020. Referencing it bare throws a ReferenceError
+// on any engine that predates it, and this module is the first import of both app.js and
+// app-service/index.js — so on such an engine the whole module graph fails to evaluate and the
+// entry point never runs at all. Zepp OS runs a different, more restricted JS VM for App Service
+// than for pages, so this can fail in the background while manual sync from the page works fine.
+// Resolved by feature detection instead; see also `polyfill()` at the bottom of this file.
 (function (global, factory) {
 	global.ES6Promise = factory();
-}(globalThis, (function () { 'use strict';
+}(
+	(function () {
+		if (typeof globalThis !== 'undefined') return globalThis;
+		if (typeof self !== 'undefined') return self;
+		if (typeof global !== 'undefined') return global;
+		try { return Function('return this')(); } catch (e) { /* CSP or restricted VM */ }
+		return this || {};
+	})(),
+	(function () { 'use strict';
 
 function objectOrFunction(x) {
   var type = typeof x;
@@ -108,10 +122,25 @@ function useMessageChannel() {
   };
 }
 
+// LOCAL PATCH (not upstream): `var globalSetTimeout = setTimeout` is a bare reference to a global
+// that Zepp OS does not provide in App Service context — timer interfaces are documented as
+// unavailable there. This function is selected and *called* at module import time by the
+// `scheduleFlush` block below, so on such a VM the ReferenceError propagates out of the import and
+// the entry point never loads. Independent of, and downstream of, the `globalThis` hazard: both
+// have to be guarded for this module to be importable from a background service.
+//
+// Falling back to a synchronous flush changes Promise semantics (callbacks run on the same tick
+// rather than a later one), which is acceptable here only because shared/device-polyfill.js
+// installs exactly that scheduler on purpose immediately after importing this file.
 function useSetTimeout() {
   // Store setTimeout reference so es6-promise will be unaffected by
   // other code modifying setTimeout (like sinon.useFakeTimers())
-  var globalSetTimeout = setTimeout;
+  var globalSetTimeout = typeof setTimeout !== 'undefined' ? setTimeout : null;
+  if (!globalSetTimeout) {
+    return function () {
+      return flush();
+    };
+  }
   return function () {
     return globalSetTimeout(flush, 1);
   };
@@ -1130,10 +1159,19 @@ Promise$1.debug = function _debug() {
 
 
 /*global self*/
+// LOCAL PATCH (not upstream): same `globalThis` hazard as the UMD wrapper at the top of this
+// file. This one runs from device-polyfill.js at import time, so a ReferenceError here also
+// takes down the entry point that imported it.
 function polyfill() {
-  var local = globalThis;
+  var local;
+  if (typeof globalThis !== 'undefined') local = globalThis;
+  else if (typeof self !== 'undefined') local = self;
+  else if (typeof global !== 'undefined') local = global;
+  else {
+    try { local = Function('return this')(); } catch (e) { /* CSP or restricted VM */ }
+  }
 
-  local.Promise = Promise$1;
+  if (local) local.Promise = Promise$1;
 }
 
 // Strange compat..

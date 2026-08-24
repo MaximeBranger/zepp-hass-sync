@@ -11,7 +11,11 @@ export const SETTINGS_KEY_LAST_SYNC_ERROR = 'lastSyncError'
 
 // Watch-side local storage keys — needed because a background app-service wake is a
 // fresh JS context each time; nothing survives in memory between runs.
-export const LOCAL_STORAGE_KEY_ALARM_ID = 'alarmId'
+//
+// There is deliberately no `alarmId` key. Remembering the pending alarm's id here is what made
+// alarms leak: `getAllAlarms()` returns numbers, `getItem()` guarantees no type, and three
+// separate call sites armed alarms while sharing this one slot. shared/alarm.js now asks the OS
+// what is pending instead of trying to remember it.
 export const LOCAL_STORAGE_KEY_INTERVAL_MINUTES = 'syncIntervalMinutes'
 
 // Watch-side local storage keys — mirror of the last sync attempt's outcome, written by

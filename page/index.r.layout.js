@@ -80,3 +80,16 @@ export const SYNC_BUTTON_STYLE = {
   press_color: 0x1a4fc4,
   text: 'Sync now',
 }
+
+// Diagnostic line: pending alarm count + the type localStorage round-trips numbers as. Rendered on
+// screen rather than logged because the Zepp app's log viewer only streams while the mini-program
+// is in the foreground, which is not when background behaviour is interesting.
+export const DIAGNOSTIC_TEXT_STYLE = {
+  ...CENTERED_TEXT,
+  x: px(20),
+  y: px(410),
+  w: px(440),
+  h: px(26),
+  color: 0x777777,
+  text_size: px(16),
+}

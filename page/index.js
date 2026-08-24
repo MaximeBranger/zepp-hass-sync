@@ -3,7 +3,7 @@ import { log as Logger } from '@zos/utils'
 import { localStorage as deviceStorage } from '@zos/storage'
 import * as Styles from 'zosLoader:./index.[pf].layout.js'
 import { readSensors } from '../app-service/sensors'
-import { scheduleNext } from '../shared/alarm'
+import { getAlarmDiagnostics, scheduleNext } from '../shared/alarm'
 import { getSyncStatus, recordSyncResult } from '../shared/sync-status'
 import { formatDateTime } from '../shared/format-time'
 import {
@@ -163,5 +163,31 @@ Page({
       ...Styles.SYNC_BUTTON_STYLE,
       click_func: () => this.runSync(),
     })
+
+    this.renderDiagnostics()
+  },
+
+  // Renders `alarms:N store:<type>`.
+  //
+  // `alarms:` is how many alarms this app currently has pending. The app is supposed to own
+  // exactly one. Anything above 1 means alarms are leaking, and since every leaked alarm fires and
+  // arms more on each wake, the count compounds — that is both why background sync stops working
+  // (the device spends its time launching services) and why the watch can reboot.
+  //
+  // `store:` is the type `localStorage` gives back for a number that was written as a number. If
+  // it reads `string`, the previous `getAllAlarms().includes(storedId)` guard was comparing a
+  // string against numbers with strict equality and could never match — the mechanism behind the
+  // leak, and invisible to the unit tests, which mock storage with a Map that preserves types.
+  renderDiagnostics() {
+    let text
+    try {
+      const { pending, storedIntervalType } = getAlarmDiagnostics()
+      text = `alarms:${pending < 0 ? '?' : pending} store:${storedIntervalType}`
+    } catch (error) {
+      text = 'diag unavailable'
+      logger.error('renderDiagnostics failed: ' + ((error && error.message) || error))
+    }
+
+    createWidget(widget.TEXT, { ...Styles.DIAGNOSTIC_TEXT_STYLE, text })
   },
 })

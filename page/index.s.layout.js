@@ -84,3 +84,14 @@ export const SYNC_BUTTON_STYLE = {
   press_color: 0x1a4fc4,
   text: 'Sync now',
 }
+
+// Diagnostic line — see index.r.layout.js for why this is on screen rather than in a log.
+export const DIAGNOSTIC_TEXT_STYLE = {
+  ...CENTERED_TEXT,
+  x: px(15),
+  y: px(410),
+  w: px(360),
+  h: px(26),
+  color: 0x777777,
+  text_size: px(16),
+}

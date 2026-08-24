@@ -21,6 +21,30 @@ import { getDeviceInfo } from '@zos/device'
 // How many hours of SpO2 history to attach to each payload.
 const SPO2_HISTORY_HOURS = 6
 
+// How many of the most recent workouts to attach. `workout.getHistory()` takes no arguments and
+// returns the device's *entire* history, so the payload silently grows with how long the watch
+// has been worn — a watch owned for years sends a materially bigger payload than one set up last
+// month, running the same build. Everything else in the payload is naturally bounded (a week of
+// samples, a few hours of SpO2, single current values); this was the only unbounded field.
+//
+// It matters because `sendHmProtocol()` fragments the payload into a synchronous burst of BLE
+// frames with no pacing or backpressure, two buffer allocations per frame, from a memory-
+// constrained background context. Keeping the newest N preserves what the webhook consumer
+// actually uses while making the cost independent of device age.
+const WORKOUT_HISTORY_LIMIT = 20
+
+// Newest entries, oldest-to-newest order preserved. `getHistory()` is documented to return
+// `{ startTime, duration }` records but the ordering is not specified, so sort explicitly rather
+// than assuming which end the recent ones are at.
+function recentWorkouts(history) {
+  if (!history || !history.length) return []
+  if (history.length <= WORKOUT_HISTORY_LIMIT) return history
+  return history
+    .slice()
+    .sort((a, b) => (a.startTime || 0) - (b.startTime || 0))
+    .slice(-WORKOUT_HISTORY_LIMIT)
+}
+
 // Wrap sensor reads that may throw (unsupported on this firmware) or return
 // undefined (no data yet) so a single bad sensor can't abort the whole payload.
 function safe(fn, fallback) {
@@ -146,7 +170,7 @@ export function readSensors() {
 
     workout: {
       status: workoutStatus || undefined,
-      history: safe(() => workout.getHistory(), []),
+      history: safe(() => recentWorkouts(workout.getHistory()), []),
     },
 
     // 0: not worn, 1: worn/stationary, 2: worn/in motion, 3: uncertain.
