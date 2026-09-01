@@ -17,6 +17,7 @@ import {
 } from '@zos/sensor'
 import { getProfile } from '@zos/user'
 import { getDeviceInfo } from '@zos/device'
+import { bodyTemperatureReading, maxHeartRateToday, stressValue } from './sensor-values'
 
 // How many hours of SpO2 history to attach to each payload.
 const SPO2_HISTORY_HOURS = 6
@@ -54,7 +55,9 @@ function safe(fn, fallback) {
 }
 
 // Raw values read straight off the watch's sensors — no zepp2hass shaping here,
-// that happens phone-side in app-side/format.js. Fields with no API on Zepp OS 3.0
+// that happens phone-side in app-side/format.js. The only exception is
+// sensor-values.js, which flattens the readings whose record shape varies between
+// firmwares so format.js can rely on a plain number. Fields with no API on Zepp OS 3.0
 // (charging state, workout sportType, most of device.*, user.birth/appVersion/
 // appPlatform/uuid) are simply absent.
 export function readSensors() {
@@ -80,8 +83,11 @@ export function readSensors() {
   const device = safe(() => getDeviceInfo(), {})
   const dailyHrSummary = safe(() => heartRate.getDailySummary(), null)
   const sleepInfo = safe(() => sleep.getInfo(), null)
-  const bodyTemp = safe(() => bodyTemperature.getCurrent(), null)
   const workoutStatus = safe(() => workout.getStatus(), null)
+  const bodyTemp = bodyTemperatureReading(
+    safe(() => bodyTemperature.getCurrent(), null),
+    safe(() => bodyTemperature.getToday(), null),
+  )
 
   return {
     record_time: Math.floor(Date.now() / 1000),
@@ -89,6 +95,9 @@ export function readSensors() {
     screen: {
       status: safe(() => screen.getStatus(), undefined),
       aodMode: safe(() => screen.getAodMode(), undefined),
+      // Ambient light in lux; zepp2hass surfaces it as "screen brightness".
+      // Zepp OS 3.6+ only, so absent on older firmware.
+      light: safe(() => screen.getLight(), undefined),
     },
 
     device: {
@@ -114,10 +123,10 @@ export function readSensors() {
 
     battery: safe(() => battery.getCurrent(), undefined),
 
-    bodyTemperature: bodyTemp ? { value: bodyTemp.current, time: bodyTemp.time } : undefined,
+    bodyTemperature: bodyTemp,
 
     stress: {
-      current: safe(() => stress.getCurrent(), undefined),
+      current: stressValue(safe(() => stress.getCurrent(), undefined)),
       lastWeek: safe(() => stress.getLastWeek(), undefined),
     },
 
@@ -144,12 +153,16 @@ export function readSensors() {
     heartRate: {
       last: safe(() => heartRate.getLast(), undefined),
       resting: safe(() => heartRate.getResting(), undefined),
-      maxToday: dailyHrSummary ? dailyHrSummary.maximum : undefined,
+      maxToday: maxHeartRateToday(
+        dailyHrSummary,
+        safe(() => heartRate.getToday(), null),
+      ),
     },
 
     sleep: {
       info: sleepInfo
         ? {
+            score: sleepInfo.score,
             startTime: sleepInfo.startTime,
             endTime: sleepInfo.endTime,
             deepTime: sleepInfo.deepTime,
@@ -157,6 +170,11 @@ export function readSensors() {
           }
         : undefined,
       status: safe(() => sleep.getSleepingStatus(), undefined),
+      // zepp2hass reverse-maps the stage constants to name the phases it shows as
+      // attributes on the sleep score sensor, so stages are useless without them.
+      stageConstants: safe(() => sleep.getStageConstantObj(), undefined),
+      stage: safe(() => sleep.getStage(), undefined),
+      nap: safe(() => sleep.getNap(), undefined),
     },
 
     pai: {

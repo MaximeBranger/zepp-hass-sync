@@ -5,7 +5,7 @@ describe('formatForZepp2Hass', () => {
   it('maps a fully populated payload to the zepp2hass shape', () => {
     const payload = {
       record_time: 1700000000,
-      screen: { status: 'on', aodMode: false },
+      screen: { status: 'on', aodMode: false, light: 120 },
       device: {
         deviceName: 'GTS 4',
         width: 336,
@@ -28,7 +28,13 @@ describe('formatForZepp2Hass', () => {
       stand: { current: 5, target: 12 },
       distance: 3200,
       heartRate: { last: 70, resting: 60, maxToday: 140 },
-      sleep: { info: [{ start: 1, stop: 2 }], status: 1 },
+      sleep: {
+        info: { score: 82, startTime: 1380, endTime: 420, deepTime: 90, totalTime: 480 },
+        status: 1,
+        stageConstants: { WAKE_STAGE: 7, REM_STAGE: 8, LIGHT_STAGE: 9, DEEP_STAGE: 10 },
+        stage: [{ model: 9, start: 1380, stop: 1400 }],
+        nap: [{ length: 20, start: 800, stop: 820 }],
+      },
       pai: { week: 100, day: 20, lastWeek: 90 },
       workout: { status: 'idle', history: [{ id: 1 }] },
       isWearing: true,
@@ -36,7 +42,7 @@ describe('formatForZepp2Hass', () => {
 
     expect(formatForZepp2Hass(payload)).toEqual({
       record_time: 1700000000,
-      screen: { status: 'on', aod_mode: false },
+      screen: { status: 'on', aod_mode: false, light: 120 },
       device: {
         deviceName: 'GTS 4',
         width: 336,
@@ -59,7 +65,13 @@ describe('formatForZepp2Hass', () => {
       stands: { current: 5, target: 12 },
       distance: { current: 3200 },
       heart_rate: { last: 70, resting: 60, summary: { maximum: { hr_value: 140 } } },
-      sleep: { info: [{ start: 1, stop: 2 }], status: 1 },
+      sleep: {
+        info: { score: 82, startTime: 1380, endTime: 420, deepTime: 90, totalTime: 480 },
+        status: 1,
+        stg_list: { WAKE_STAGE: 7, REM_STAGE: 8, LIGHT_STAGE: 9, DEEP_STAGE: 10 },
+        stage: [{ model: 9, start: 1380, stop: 1400 }],
+        nap: [{ length: 20, start: 800, stop: 820 }],
+      },
       pai: { week: 100, day: 20, last_week: 90 },
       workout: { status: 'idle', history: [{ id: 1 }] },
       is_wearing: true,
@@ -80,8 +92,22 @@ describe('formatForZepp2Hass', () => {
   it('handles an empty payload without throwing, filling nested objects with undefined fields', () => {
     const result = formatForZepp2Hass()
     expect(result.record_time).toBeUndefined()
-    expect(result.screen).toEqual({ status: undefined, aod_mode: undefined })
+    expect(result.screen).toEqual({ status: undefined, aod_mode: undefined, light: undefined })
     expect(result.battery).toEqual({ current: undefined })
+  })
+
+  it('maps the leaf values zepp2hass reads for stress, max heart rate and sleep score', () => {
+    const result = formatForZepp2Hass({
+      stress: { current: 31 },
+      heartRate: { maxToday: 152 },
+      sleep: { info: { score: 74 } },
+      screen: { light: 8 },
+    })
+
+    expect(result.stress.current.value).toBe(31)
+    expect(result.heart_rate.summary.maximum.hr_value).toBe(152)
+    expect(result.sleep.info.score).toBe(74)
+    expect(result.screen.light).toBe(8)
   })
 
   it('handles a null payload the same as an empty object', () => {

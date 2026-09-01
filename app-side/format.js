@@ -1,4 +1,4 @@
-// Maps our raw watch->phone payload (page/sensors.js `readSensors()`) to the JSON
+// Maps our raw watch->phone payload (app-service/sensors.js `readSensors()`) to the JSON
 // shape zepp2hass expects (custom_components/zepp2hass/sensors/*.py). Fields with
 // no API on Zepp OS 3.0 (battery.is_charging,
 // workout.history[].sportType, most of device.*, user.birth/appVersion/
@@ -24,6 +24,7 @@ export function formatForZepp2Hass(payload) {
     screen: {
       status: screen.status,
       aod_mode: screen.aodMode,
+      light: screen.light,
     },
 
     device: {
@@ -95,6 +96,9 @@ export function formatForZepp2Hass(payload) {
     sleep: {
       info: sleep.info,
       status: sleep.status,
+      stg_list: sleep.stageConstants,
+      stage: sleep.stage,
+      nap: sleep.nap,
     },
 
     pai: {
