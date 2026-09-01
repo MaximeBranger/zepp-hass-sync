@@ -30,3 +30,25 @@ msgstr "OK"
 
 msgid "statusFailed"
 msgstr "Fallito"
+
+msgid "serviceSectionTitle"
+msgstr "Servizio in background"
+
+msgid "serviceSectionDescription"
+msgstr "Sincronizza automaticamente mentre l'app dell'orologio è chiusa."
+
+msgid "serviceNeverStarted"
+msgstr "Mai avviato"
+
+msgid "serviceStarted"
+msgstr "Avviato"
+
+msgid "serviceDelivered"
+msgstr "Sincronizzazioni ricevute"
+
+msgid "serviceDeliveredNone"
+msgstr "Nessuna sincronizzazione ricevuta"
+
+msgid "serviceStuckAt"
+msgstr "Bloccato alla fase"
+

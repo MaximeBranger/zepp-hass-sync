@@ -30,3 +30,25 @@ msgstr "OK"
 
 msgid "statusFailed"
 msgstr "Fehlgeschlagen"
+
+msgid "serviceSectionTitle"
+msgstr "Hintergrunddienst"
+
+msgid "serviceSectionDescription"
+msgstr "Synchronisiert automatisch, während die Uhren-App geschlossen ist."
+
+msgid "serviceNeverStarted"
+msgstr "Nie gestartet"
+
+msgid "serviceStarted"
+msgstr "Gestartet"
+
+msgid "serviceDelivered"
+msgstr "Übermittelte Synchronisierungen"
+
+msgid "serviceDeliveredNone"
+msgstr "Noch keine Synchronisierung übermittelt"
+
+msgid "serviceStuckAt"
+msgstr "Hängt in Phase"
+

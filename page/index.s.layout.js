@@ -11,6 +11,13 @@ const CENTERED_TEXT = {
   text_style: text_style.NONE,
 }
 
+// See index.r.layout.js: the diagnostics wrap rather than clipping whatever doesn't fit on one line.
+const WRAPPED_TEXT = {
+  align_h: align.CENTER_H,
+  align_v: align.TOP,
+  text_style: text_style.WRAP,
+}
+
 export const TITLE_TEXT_STYLE = {
   ...CENTERED_TEXT,
   x: px(0),
@@ -42,41 +49,32 @@ export const LAST_SYNC_TEXT_STYLE = {
   text_size: px(18),
 }
 
-export const INTERVAL_MINUS_BUTTON_STYLE = {
-  x: px(20),
-  y: px(202),
-  w: px(70),
-  h: px(60),
-  radius: px(12),
-  normal_color: 0x3a3a3a,
-  press_color: 0x1a1a1a,
-  text: '-',
-}
-
+// Read-only — the interval belongs to the phone. See index.r.layout.js.
 export const INTERVAL_TEXT_STYLE = {
   ...CENTERED_TEXT,
-  x: px(100),
-  y: px(202),
-  w: px(190),
-  h: px(60),
+  x: px(15),
+  y: px(180),
+  w: px(360),
+  h: px(32),
   color: 0xffffff,
   text_size: px(22),
 }
 
-export const INTERVAL_PLUS_BUTTON_STYLE = {
-  x: px(300),
-  y: px(202),
-  w: px(70),
-  h: px(60),
+export const REFRESH_BUTTON_STYLE = {
+  x: px(45),
+  y: px(222),
+  w: px(300),
+  h: px(54),
   radius: px(12),
   normal_color: 0x3a3a3a,
   press_color: 0x1a1a1a,
-  text: '+',
+  text_size: px(20),
+  text: 'Refresh config',
 }
 
 export const SYNC_BUTTON_STYLE = {
   x: px(45),
-  y: px(340),
+  y: px(286),
   w: px(300),
   h: px(60),
   radius: px(12),
@@ -85,13 +83,40 @@ export const SYNC_BUTTON_STYLE = {
   text: 'Sync now',
 }
 
-// Diagnostic line — see index.r.layout.js for why this is on screen rather than in a log.
-export const DIAGNOSTIC_TEXT_STYLE = {
-  ...CENTERED_TEXT,
+// Doubles as the background-sync status line, and hides itself once the worker is running — see
+// index.r.layout.js.
+export const BG_BUTTON_STYLE = {
   x: px(15),
-  y: px(410),
+  y: px(356),
   w: px(360),
-  h: px(26),
+  h: px(52),
+  radius: px(12),
+  normal_color: 0x8a5a00,
+  press_color: 0x5a3b00,
+  text_size: px(20),
+  text: 'Enable background sync',
+}
+
+// Diagnostic blocks — see index.r.layout.js for why these are on screen rather than in a log, and
+// why they wrap onto several lines instead of being clipped. A rectangular canvas keeps its full
+// width all the way down, so the only reason these run past the bottom edge is length; the page's
+// free-scroll mode brings them into view.
+export const BOOT_DIAGNOSTIC_TEXT_STYLE = {
+  ...WRAPPED_TEXT,
+  x: px(15),
+  y: px(424),
+  w: px(360),
+  h: px(66),
   color: 0x777777,
-  text_size: px(16),
+  text_size: px(18),
+}
+
+export const DIAGNOSTIC_TEXT_STYLE = {
+  ...WRAPPED_TEXT,
+  x: px(15),
+  y: px(500),
+  w: px(360),
+  h: px(88),
+  color: 0x777777,
+  text_size: px(18),
 }

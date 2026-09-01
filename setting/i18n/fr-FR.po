@@ -30,3 +30,25 @@ msgstr "OK"
 
 msgid "statusFailed"
 msgstr "Échec"
+
+msgid "serviceSectionTitle"
+msgstr "Service en arrière-plan"
+
+msgid "serviceSectionDescription"
+msgstr "Synchronise automatiquement lorsque l'app de la montre est fermée."
+
+msgid "serviceNeverStarted"
+msgstr "Jamais démarré"
+
+msgid "serviceStarted"
+msgstr "Démarré"
+
+msgid "serviceDelivered"
+msgstr "Synchronisations reçues"
+
+msgid "serviceDeliveredNone"
+msgstr "Aucune synchronisation reçue"
+
+msgid "serviceStuckAt"
+msgstr "Bloqué à l'étape"
+

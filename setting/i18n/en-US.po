@@ -30,3 +30,25 @@ msgstr "OK"
 
 msgid "statusFailed"
 msgstr "Failed"
+
+msgid "serviceSectionTitle"
+msgstr "Background service"
+
+msgid "serviceSectionDescription"
+msgstr "Syncs automatically while the watch app is closed."
+
+msgid "serviceNeverStarted"
+msgstr "Never started"
+
+msgid "serviceStarted"
+msgstr "Started"
+
+msgid "serviceDelivered"
+msgstr "Syncs delivered"
+
+msgid "serviceDeliveredNone"
+msgstr "No syncs delivered yet"
+
+msgid "serviceStuckAt"
+msgstr "Stuck at stage"
+

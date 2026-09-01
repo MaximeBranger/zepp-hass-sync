@@ -30,3 +30,25 @@ msgstr "正常"
 
 msgid "statusFailed"
 msgstr "失败"
+
+msgid "serviceSectionTitle"
+msgstr "后台服务"
+
+msgid "serviceSectionDescription"
+msgstr "手表应用关闭时自动同步。"
+
+msgid "serviceNeverStarted"
+msgstr "从未启动"
+
+msgid "serviceStarted"
+msgstr "启动于"
+
+msgid "serviceDelivered"
+msgstr "已送达的同步"
+
+msgid "serviceDeliveredNone"
+msgstr "尚未送达任何同步"
+
+msgid "serviceStuckAt"
+msgstr "卡在阶段"
+
