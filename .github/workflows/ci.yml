@@ -6,7 +6,10 @@ env:
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    # Tous les tags, sans exception : les versions de ce dépôt n'ont pas de préfixe (1.2.0, 1.3.0),
+    # et le filtre 'v*' d'origine ne correspondait donc à aucune d'entre elles — le job release
+    # ci-dessous ne se déclenchait jamais. Sa propre condition accepte déjà n'importe quel tag.
+    tags: ['**']
   pull_request:
 
 # Annule les runs précédents encore en cours sur la même ref (push successifs / PR mises à jour)
