@@ -1,9 +1,18 @@
 name: CI
 
+env:
+  ARTIFACT_NAME: "zepp-hass-sync"
+
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
+
+# Annule les runs précédents encore en cours sur la même ref (push successifs / PR mises à jour)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint:
@@ -27,3 +36,53 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+
+  release:
+    # Tags only: build the .zab with zeus and upload it to the Nexus raw repo.
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install zeus CLI
+        run: npm install -g @zeppos/zeus-cli
+      - name: Build
+        run: npm run build:zeus
+      - name: Locate artifact
+        id: artifact
+        run: |
+          set -e
+          # zeus nomme le .zab avec un timestamp de build : on le renomme sur le tag
+          # pour que le nom déposé sur Nexus porte la version.
+          file=$(ls dist/*.zab | head -n 1)
+          if [ -z "$file" ]; then
+            echo "no .zab produced in dist/" >&2
+            exit 1
+          fi
+          name="${ARTIFACT_NAME}-${GITHUB_REF_NAME}.zab"
+          mv "$file" "dist/$name"
+          echo "path=dist/$name" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+      - name: Upload to Nexus
+        env:
+          # URL complète du dépôt raw, schéma inclus, jusqu'au nom du dépôt.
+          NEXUS_URL: ${{ vars.NEXUS_URL }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        run: |
+          set -e
+          if [ -z "$NEXUS_URL" ]; then
+            echo "variable NEXUS_URL manquante" >&2
+            exit 1
+          fi
+          target="${NEXUS_URL%/}/${ARTIFACT_NAME}/${{ steps.artifact.outputs.name }}"
+          echo "uploading to $target"
+          curl --fail-with-body --silent --show-error \
+            --user "$NEXUS_USERNAME:$NEXUS_PASSWORD" \
+            --upload-file "${{ steps.artifact.outputs.path }}" \
+            "$target"
