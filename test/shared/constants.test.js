@@ -38,7 +38,7 @@ describe('clampIntervalMinutes', () => {
 // The App Service's only inbound channel. It can read neither watch-side storage nor the phone's
 // settings, so what it knows about its own pace and about what started it arrives entirely through
 // the single string `start()` and the alarm's `set()` are allowed to pass. A codec failure here is
-// silent on device: the service simply syncs at the wrong pace, or reports every sync as if the app
+// silent on device: the service simply sends at the wrong pace, or reports every send as if the app
 // had been opened.
 describe('service param codec', () => {
   it('round-trips a trigger and an interval', () => {
@@ -60,7 +60,7 @@ describe('service param codec', () => {
   })
 
   // A service started by an older build, or woken by an alarm restored across a reboot with a param
-  // this build doesn't recognise, must still sync at a sane pace rather than not at all.
+  // this build doesn't recognise, must still send at a sane pace rather than not at all.
   it('falls back to a page trigger at the default interval for anything unparseable', () => {
     for (const param of [undefined, null, '', 42, {}]) {
       expect(decodeServiceParam(param)).toEqual({

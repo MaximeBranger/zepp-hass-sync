@@ -1,4 +1,4 @@
-// Watch-side. Schedules the wake-up that *is* the background sync's clock — nothing else on this
+// Watch-side. Schedules the wake-up that *is* the background send's clock — nothing else on this
 // watch can measure the passage of time (see app-service/index.js for the mechanisms measured not to
 // work).
 //
@@ -78,7 +78,7 @@ export function armNextAlarm(intervalMinutes) {
 // Sweeping here and not in the service is deliberate. The page is the one context that can afford
 // the calls and the one that needs to heal an accumulated backlog; the service only ever adds the
 // single alarm that replaces the one it consumed.
-export function scheduleSyncAlarm(intervalMinutes) {
+export function scheduleSendAlarm(intervalMinutes) {
   const cancelled = cancelAllAlarms()
   return { id: armNextAlarm(intervalMinutes), cancelled }
 }

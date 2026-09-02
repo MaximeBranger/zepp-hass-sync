@@ -1,8 +1,14 @@
+msgid "appTitle"
+msgstr "Zepp → Home Assistant"
+
+msgid "appSubtitle"
+msgstr "Envía los datos de salud de tu reloj a Home Assistant."
+
 msgid "webhookSectionTitle"
 msgstr "Home Assistant"
 
 msgid "webhookSectionDescription"
-msgstr "Pega aquí la URL del webhook de zepp2hass desde Home Assistant."
+msgstr "Pega aquí la URL del webhook zepp2hass de Home Assistant."
 
 msgid "webhookUrlLabel"
 msgstr "URL del webhook"
@@ -10,53 +16,47 @@ msgstr "URL del webhook"
 msgid "webhookUrlPlaceholder"
 msgstr "https://tu-home-assistant/api/webhook/..."
 
-msgid "intervalSectionTitle"
-msgstr "Intervalo de sincronización"
+msgid "sendIntervalSectionTitle"
+msgstr "Intervalo de envío"
 
-msgid "intervalSectionDescription"
-msgstr "Con qué frecuencia el reloj envía datos a Home Assistant."
+msgid "sendIntervalSectionDescription"
+msgstr "Con qué frecuencia el reloj envía sus datos a Home Assistant."
 
 msgid "intervalUnit"
 msgstr "minutos"
 
-msgid "statusSectionTitle"
-msgstr "Última sincronización"
-
-msgid "statusNeverSynced"
-msgstr "Nunca sincronizado"
-
-msgid "statusOk"
-msgstr "OK"
-
-msgid "statusFailed"
-msgstr "Fallo"
-
-msgid "serviceSectionTitle"
-msgstr "Servicio en segundo plano"
-
-msgid "serviceSectionDescription"
-msgstr "Sincroniza automáticamente mientras la app del reloj está cerrada."
-
-msgid "serviceNeverStarted"
-msgstr "Nunca iniciado"
-
-msgid "serviceStarted"
-msgstr "Iniciado"
-
-msgid "serviceDelivered"
-msgstr "Sincronizaciones recibidas"
-
-msgid "serviceDeliveredNone"
-msgstr "Ninguna sincronización recibida"
-
-msgid "serviceStuckAt"
-msgstr "Bloqueado en la fase"
-
-msgid "appTitle"
-msgstr "Zepp → Home Assistant"
-
-msgid "appSubtitle"
-msgstr "Envía los datos de salud de tu reloj a Home Assistant."
-
 msgid "debugSectionTitle"
 msgstr "Depuración"
+
+msgid "lastSendSectionTitle"
+msgstr "Último envío"
+
+msgid "sendNever"
+msgstr "Aún no se ha enviado nada"
+
+msgid "sendOk"
+msgstr "OK"
+
+msgid "sendFailed"
+msgstr "Error"
+
+msgid "autoSendSectionTitle"
+msgstr "Envío automático"
+
+msgid "autoSendSectionDescription"
+msgstr "Envía por su cuenta mientras la app del reloj está cerrada."
+
+msgid "autoSendNeverStarted"
+msgstr "Nunca iniciado"
+
+msgid "autoSendStarted"
+msgstr "Iniciado"
+
+msgid "autoSendDelivered"
+msgstr "Envíos recibidos"
+
+msgid "autoSendDeliveredNone"
+msgstr "Aún no se ha recibido ningún envío"
+
+msgid "autoSendStuckAt"
+msgstr "Bloqueado en la fase"

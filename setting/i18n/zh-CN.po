@@ -1,8 +1,14 @@
+msgid "appTitle"
+msgstr "Zepp → Home Assistant"
+
+msgid "appSubtitle"
+msgstr "将手表的健康数据发送到 Home Assistant。"
+
 msgid "webhookSectionTitle"
 msgstr "Home Assistant"
 
 msgid "webhookSectionDescription"
-msgstr "在此粘贴来自 Home Assistant 的 zepp2hass Webhook 地址。"
+msgstr "在此粘贴 Home Assistant 的 zepp2hass Webhook 地址。"
 
 msgid "webhookUrlLabel"
 msgstr "Webhook 地址"
@@ -10,53 +16,47 @@ msgstr "Webhook 地址"
 msgid "webhookUrlPlaceholder"
 msgstr "https://your-home-assistant/api/webhook/..."
 
-msgid "intervalSectionTitle"
-msgstr "同步间隔"
+msgid "sendIntervalSectionTitle"
+msgstr "发送间隔"
 
-msgid "intervalSectionDescription"
-msgstr "手表向 Home Assistant 推送数据的频率。"
+msgid "sendIntervalSectionDescription"
+msgstr "手表向 Home Assistant 发送数据的频率。"
 
 msgid "intervalUnit"
 msgstr "分钟"
 
-msgid "statusSectionTitle"
-msgstr "上次同步"
-
-msgid "statusNeverSynced"
-msgstr "尚未同步"
-
-msgid "statusOk"
-msgstr "正常"
-
-msgid "statusFailed"
-msgstr "失败"
-
-msgid "serviceSectionTitle"
-msgstr "后台服务"
-
-msgid "serviceSectionDescription"
-msgstr "手表应用关闭时自动同步。"
-
-msgid "serviceNeverStarted"
-msgstr "从未启动"
-
-msgid "serviceStarted"
-msgstr "启动于"
-
-msgid "serviceDelivered"
-msgstr "已送达的同步"
-
-msgid "serviceDeliveredNone"
-msgstr "尚未送达任何同步"
-
-msgid "serviceStuckAt"
-msgstr "卡在阶段"
-
-msgid "appTitle"
-msgstr "Zepp → Home Assistant"
-
-msgid "appSubtitle"
-msgstr "将手表的健康数据发送到 Home Assistant。"
-
 msgid "debugSectionTitle"
 msgstr "调试"
+
+msgid "lastSendSectionTitle"
+msgstr "上次发送"
+
+msgid "sendNever"
+msgstr "尚未发送"
+
+msgid "sendOk"
+msgstr "成功"
+
+msgid "sendFailed"
+msgstr "失败"
+
+msgid "autoSendSectionTitle"
+msgstr "自动发送"
+
+msgid "autoSendSectionDescription"
+msgstr "手表应用关闭时自动发送。"
+
+msgid "autoSendNeverStarted"
+msgstr "从未启动"
+
+msgid "autoSendStarted"
+msgstr "已启动"
+
+msgid "autoSendDelivered"
+msgstr "已收到发送"
+
+msgid "autoSendDeliveredNone"
+msgstr "尚未收到发送"
+
+msgid "autoSendStuckAt"
+msgstr "卡在阶段"

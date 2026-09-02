@@ -31,7 +31,7 @@ export default [
         TextInput: 'readonly',
         Slider: 'readonly',
         Text: 'readonly',
-        Button: 'readonly',
+        Toggle: 'readonly',
       },
     },
   },

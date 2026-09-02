@@ -18,7 +18,7 @@ App({
   // multiple independent MessageBuilder instances — a persistent one here, held for the app's
   // entire open duration, and the transient one app-service/index.js's long-running service opens
   // and closes every tick, then fight over that one connection's handshake state. That's what
-  // turned "Sync now" into an indefinite hang on "sending...": the service could tear down or
+  // turned "Send now" into an indefinite hang on "sending...": the service could tear down or
   // re-handshake the shared connection out from under a request this page had already started.
   // page/index.js now opens its own short-lived MessageBuilder per tap instead, the same transient
   // pattern the service already uses — see its runSync() and requestIntervalChange().

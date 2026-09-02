@@ -1,7 +1,7 @@
 // Kept despite the import diet below: it pulls in no `@zos/*` module at all, only a pure-JS Promise
 // polyfill, and it installs a *synchronous* promise scheduler. That matters here more than anywhere
 // — the default scheduler is built on setTimeout, and a promise callback queued behind a timer that
-// never fires is a sync that never completes.
+// never fires is a send that never completes.
 import '../shared/device-polyfill'
 import { MessageBuilder, MessagePayloadDataTypeOp, MessagePayloadType } from '../shared/message'
 import { exit } from '@zos/app-service'
@@ -13,10 +13,10 @@ import { readFileSync, writeFileSync } from '@zos/fs'
 import { readSensors } from './sensors'
 import {
   MESSAGE_METHOD_SERVICE_REPORT,
-  MESSAGE_METHOD_SYNC,
+  MESSAGE_METHOD_SEND,
   MESSAGE_SOURCE_SERVICE,
   SERVICE_STAGE_SENSORS,
-  SERVICE_STAGE_SYNC,
+  SERVICE_STAGE_SEND,
   SERVICE_TRACE_STORE,
   STATE_KEY_WD_DONE,
   STATE_KEY_WD_LAST,
@@ -32,14 +32,14 @@ const MAX_DETAIL_CHARS = 120
 const logger = Logger.getLogger('hass-sync-service')
 
 // ---------------------------------------------------------------------------
-// One sync per run. The alarm is the clock.
+// One send per run. The alarm is the clock.
 // ---------------------------------------------------------------------------
 // This VM has no working way to measure the passage of time, and that is now a measured fact rather
 // than a suspicion. Three mechanisms have been tried on an Amazfit GTR 4 (Zepp OS 3.5, API 3.6):
 //
 //   setTimeout / setInterval  Documented as unavailable in App Service context. Present, `typeof`
 //                             calls them functions, and nothing they schedule ever runs. A service
-//                             started at 09:14 delivered exactly one sync, at 09:14.
+//                             started at 09:14 delivered exactly one send, at 09:14.
 //   Time.onPerMinute          The platform's own sanctioned replacement, used by the official App
 //                             Service sample. `new Time()` and `onPerMinute()` both return without
 //                             throwing — the service reports a `tick` stage if either fails, and it
@@ -64,14 +64,14 @@ const logger = Logger.getLogger('hass-sync-service')
 // "proved" the direct wake impossible predated the `app-event` declaration and never dispatched at
 // all.
 //
-// Hence the shape of this file: it does exactly one sync and then ends itself. Ending is not a
+// Hence the shape of this file: it does exactly one send and then ends itself. Ending is not a
 // tidiness measure, it is the mechanism. `start()` against a live service is a no-op, so a service
 // that stayed resident without being able to pace itself would sit idle forever and block every
 // subsequent alarm from achieving anything. Exiting frees the slot for the next one.
 //
-// The cost is honest and worth stating: one process start per sync instead of one long-lived
+// The cost is honest and worth stating: one process start per send instead of one long-lived
 // process, and a cadence no finer than the alarm's. Both are preferable to the alternative, which
-// is a background sync that does not happen.
+// is a background send that does not happen.
 //
 // ---------------------------------------------------------------------------
 // Why this file imports so little, and nothing that touches storage
@@ -95,7 +95,7 @@ const logger = Logger.getLogger('hass-sync-service')
 //
 // Neither is a reason to relax the rule. The history behind it is real: what a missing module does
 // here is fail at import, which presents as a service the OS lists and never runs — no error, no
-// log line, nothing attributable. Anything added must be something a single background sync is
+// log line, nothing attributable. Anything added must be something a single background send is
 // impossible without, and the reports still go to the phone rather than to local storage, because
 // app-side/index.js is the only place the watch face can read a history from with confidence.
 
@@ -130,7 +130,7 @@ function trace(trigger, patch) {
     if (patch.last) next[STATE_KEY_WD_LAST] = String(patch.last).slice(0, 24)
     writeFileSync({ path: SERVICE_TRACE_STORE, data: JSON.stringify(next), options: { encoding: 'utf8' } })
   } catch {
-    // A service that cannot write its own breadcrumb must still sync.
+    // A service that cannot write its own breadcrumb must still send.
   }
 }
 
@@ -196,19 +196,19 @@ AppService({
     // pair `runs` climbing / `done` frozen is the answer.
     trace(this.trigger, { run: true })
 
-    this.runSync()
+    this.runSend()
   },
 
   // Ends the service so the next alarm finds no resident instance to decline to relaunch. This is
   // the mechanism, not housekeeping — see the header.
   //
-  // The timing is what earlier attempts got wrong. Calling this straight after runSync() returned
+  // The timing is what earlier attempts got wrong. Calling this straight after runSend() returned
   // killed the service mid-handshake — `request()` negotiates before a single frame goes out — and
-  // the phone went from one sync per app open to nothing at all. So it hangs off the round trip's
+  // the phone went from one send per app open to nothing at all. So it hangs off the round trip's
   // own completion instead.
   //
   // Which works because this VM is not as inert as it looks. It was tempting to conclude it stops
-  // executing when onInit returns, since nothing scheduled ever runs. But the syncs *do* arrive at
+  // executing when onInit returns, since nothing scheduled ever runs. But the sends *do* arrive at
   // the phone, and they could not: a handshake completes by way of a native receive callback firing
   // after onInit returned. BLE callbacks are delivered here; scheduled ones and sensor ticks are
   // not. That is a much narrower defect than "the VM is frozen", and it leaves this exact hook
@@ -262,7 +262,7 @@ AppService({
   //
   // `request()` ends with `return this.waitingShakePromise.then(_request)` — it waits for the BLE
   // handshake to come back from the phone *before emitting a single byte*, then waits again for the
-  // response. Two round trips. On device, ten consecutive alarm-woken runs reached the sync and not
+  // response. Two round trips. On device, ten consecutive alarm-woken runs reached the send and not
   // one of them completed it: `wd:10/0`. Since a run that hung would have stayed resident and
   // blocked the next wake-up, and the wake-ups kept arriving, each run was being terminated from
   // outside — the documented 600ms cap on a single execution is a wall-clock lifetime.
@@ -273,7 +273,7 @@ AppService({
   // that actually matters — get the health data to the phone — in synchronous time.
   //
   // What is given up is the reply, and with it the phone's `background` summary and any confirmation
-  // that the webhook succeeded. Neither is a loss worth the round trip: app-side records the sync on
+  // that the webhook succeeded. Neither is a loss worth the round trip: app-side records the send on
   // *arrival*, before it calls the webhook, so the phone's history stays accurate, and the watch
   // face reads that history through the config pull it makes on every app open.
   //
@@ -312,11 +312,11 @@ AppService({
   },
 
   // Sends exactly one message, and never chains a second behind the first. Earlier versions put a
-  // startup "hello" ahead of the sync and gated the sync on its reply; on a watch where replies do
-  // not come back, the hello went out and the sync never did — not one byte of health data was ever
-  // delivered. The sync is its own announcement: app-side records contact from any message on
+  // startup "hello" ahead of the send and gated the send on its reply; on a watch where replies do
+  // not come back, the hello went out and the send never did — not one byte of health data was ever
+  // delivered. The send is its own announcement: app-side records contact from any message on
   // arrival. If the sensors fail before it can be built, the report below goes out in its place.
-  runSync() {
+  runSend() {
     let payload
     try {
       // Deliberately not logging the payload or its length: measuring it costs a full extra
@@ -336,7 +336,7 @@ AppService({
     }
 
     const message = {
-      method: MESSAGE_METHOD_SYNC,
+      method: MESSAGE_METHOD_SEND,
       payload,
       source: MESSAGE_SOURCE_SERVICE,
       timerMode: this.timerMode,
@@ -368,9 +368,9 @@ AppService({
     // that file counts alarm-woken runs, and an app open is not evidence of anything.
     return this.exchange(message)
       .catch((error) => {
-        logger.error('runSync failed: ' + describeError(error))
+        logger.error('runSend failed: ' + describeError(error))
         this.closeConnection()
-        return this.report(SERVICE_STAGE_SYNC, describeError(error))
+        return this.report(SERVICE_STAGE_SEND, describeError(error))
       })
       // Success or failure, the run is over here and the slot must be released for the next alarm.
       .then(() => this.standDown())

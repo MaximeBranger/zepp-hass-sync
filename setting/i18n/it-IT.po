@@ -1,62 +1,62 @@
-msgid "webhookSectionTitle"
-msgstr "Home Assistant"
-
-msgid "webhookSectionDescription"
-msgstr "Incolla qui l'URL del webhook zepp2hass da Home Assistant."
-
-msgid "webhookUrlLabel"
-msgstr "URL del webhook"
-
-msgid "webhookUrlPlaceholder"
-msgstr "https://tuo-home-assistant/api/webhook/..."
-
-msgid "intervalSectionTitle"
-msgstr "Intervallo di sincronizzazione"
-
-msgid "intervalSectionDescription"
-msgstr "Con quale frequenza l'orologio invia i dati a Home Assistant."
-
-msgid "intervalUnit"
-msgstr "minuti"
-
-msgid "statusSectionTitle"
-msgstr "Ultima sincronizzazione"
-
-msgid "statusNeverSynced"
-msgstr "Mai sincronizzato"
-
-msgid "statusOk"
-msgstr "OK"
-
-msgid "statusFailed"
-msgstr "Fallito"
-
-msgid "serviceSectionTitle"
-msgstr "Servizio in background"
-
-msgid "serviceSectionDescription"
-msgstr "Sincronizza automaticamente mentre l'app dell'orologio è chiusa."
-
-msgid "serviceNeverStarted"
-msgstr "Mai avviato"
-
-msgid "serviceStarted"
-msgstr "Avviato"
-
-msgid "serviceDelivered"
-msgstr "Sincronizzazioni ricevute"
-
-msgid "serviceDeliveredNone"
-msgstr "Nessuna sincronizzazione ricevuta"
-
-msgid "serviceStuckAt"
-msgstr "Bloccato alla fase"
-
 msgid "appTitle"
 msgstr "Zepp → Home Assistant"
 
 msgid "appSubtitle"
 msgstr "Invia i dati di salute del tuo orologio a Home Assistant."
 
+msgid "webhookSectionTitle"
+msgstr "Home Assistant"
+
+msgid "webhookSectionDescription"
+msgstr "Incolla qui l'URL del webhook zepp2hass di Home Assistant."
+
+msgid "webhookUrlLabel"
+msgstr "URL del webhook"
+
+msgid "webhookUrlPlaceholder"
+msgstr "https://il-tuo-home-assistant/api/webhook/..."
+
+msgid "sendIntervalSectionTitle"
+msgstr "Intervallo di invio"
+
+msgid "sendIntervalSectionDescription"
+msgstr "Ogni quanto l'orologio invia i suoi dati a Home Assistant."
+
+msgid "intervalUnit"
+msgstr "minuti"
+
 msgid "debugSectionTitle"
 msgstr "Debug"
+
+msgid "lastSendSectionTitle"
+msgstr "Ultimo invio"
+
+msgid "sendNever"
+msgstr "Nessun invio finora"
+
+msgid "sendOk"
+msgstr "OK"
+
+msgid "sendFailed"
+msgstr "Non riuscito"
+
+msgid "autoSendSectionTitle"
+msgstr "Invio automatico"
+
+msgid "autoSendSectionDescription"
+msgstr "Invia da solo mentre l'app dell'orologio è chiusa."
+
+msgid "autoSendNeverStarted"
+msgstr "Mai avviato"
+
+msgid "autoSendStarted"
+msgstr "Avviato"
+
+msgid "autoSendDelivered"
+msgstr "Invii ricevuti"
+
+msgid "autoSendDeliveredNone"
+msgstr "Nessun invio ricevuto"
+
+msgid "autoSendStuckAt"
+msgstr "Bloccato alla fase"

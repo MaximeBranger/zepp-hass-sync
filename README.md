@@ -18,12 +18,23 @@ See [TUTORIAL.md](TUTORIAL.md) for install and configuration instructions.
 
 Reads every available sensor and sends it to the phone over BLE, which formats it
 to the zepp2hass JSON shape and POSTs it to the webhook URL configured in the app's
-phone-side Settings screen (no URL configured → the app reports "webhook not
-configured" instead of sending). Triggered either by tapping Sync on the watch, or
-automatically every N minutes via a long-running background `app-service`; N can be
-adjusted from the watch face itself (+/- buttons) or from the phone-side Settings
-screen, and both stay in sync. The watch face and the Settings screen each show the
-outcome and timestamp of the last sync attempt. Built incrementally.
+phone-side Settings screen (no URL configured → the app reports "Webhook not set"
+instead of sending). Triggered either by tapping **Send now** on the watch, or
+automatically every N minutes: a system alarm wakes a background `app-service`,
+which arms the next alarm, sends once, and ends itself.
+
+The app is careful to keep two things apart that are easy to confuse, and never
+calls them the same name:
+
+- **send** — health data going out to Home Assistant, the app's actual job;
+- **config** — the watch pulling `{ interval, webhook set? }` back from the phone,
+  which is cheap, one-directional, and moves no health data.
+
+The phone's Settings screen is the only place the webhook URL and the interval are
+edited; the watch reads them and never writes them back. Both surfaces report the
+outcome and timestamp of the last send — the watch face at a glance, the Settings
+screen's Debug panel with the full error text and the background service's history.
+Built incrementally.
 
 ## Compatible Devices
 

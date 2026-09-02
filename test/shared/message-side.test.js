@@ -141,11 +141,11 @@ describe('MessageBuilder sendJson -> onMessage -> emitted request', () => {
       received = builder.buf2Json(ctx.request.payload)
     })
 
-    builder.sendJson({ requestId: 999, json: { method: 'SYNC' } })
+    builder.sendJson({ requestId: 999, json: { method: 'SEND' } })
     expect(sent).toHaveLength(1)
 
     builder.onMessage(sent[0])
 
-    expect(received).toEqual({ method: 'SYNC' })
+    expect(received).toEqual({ method: 'SEND' })
   })
 })

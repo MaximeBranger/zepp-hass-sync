@@ -20,7 +20,7 @@ const {
   getLastPermissionQuery,
   getLastPermissionRequest,
   getLastServiceStartResult,
-  getSyncStatus,
+  getSendStatus,
   getServiceTrace,
   hasPromptedForPermission,
   recordBackgroundSummary,
@@ -28,50 +28,52 @@ const {
   recordPermissionQuery,
   recordPermissionRequest,
   recordServiceStartResult,
-  recordSyncResult,
-} = await import('../../shared/sync-status')
+  recordSendResult,
+} = await import('../../shared/send-status')
+const { resetStoreCache } = await import('../../shared/store')
 
 beforeEach(() => {
   fs.files.clear()
+  resetStoreCache()
   fs.state.readThrows = false
   fs.state.writeThrows = false
 })
 
-describe('getSyncStatus', () => {
-  it('returns the "never synced" sentinel before any result has been recorded', () => {
-    expect(getSyncStatus()).toEqual({ ok: null, error: '', time: 0, configured: null })
+describe('getSendStatus', () => {
+  it('returns the "never sent" sentinel before any result has been recorded', () => {
+    expect(getSendStatus()).toEqual({ ok: null, error: '', time: 0, configured: null })
   })
 
-  it('reflects a successful sync back', () => {
-    recordSyncResult({ ok: true, configured: true, time: 1700000000 })
-    expect(getSyncStatus()).toEqual({ ok: true, error: '', time: 1700000000, configured: true })
+  it('reflects a successful send back', () => {
+    recordSendResult({ ok: true, configured: true, time: 1700000000 })
+    expect(getSendStatus()).toEqual({ ok: true, error: '', time: 1700000000, configured: true })
   })
 
-  it('persists a failed sync with its error message', () => {
-    recordSyncResult({ ok: false, error: 'timeout', configured: true, time: 1700000001 })
-    expect(getSyncStatus()).toEqual({ ok: false, error: 'timeout', time: 1700000001, configured: true })
+  it('persists a failed send with its error message', () => {
+    recordSendResult({ ok: false, error: 'timeout', configured: true, time: 1700000001 })
+    expect(getSendStatus()).toEqual({ ok: false, error: 'timeout', time: 1700000001, configured: true })
   })
 
   it('leaves "configured" untouched when omitted (transport-level failure)', () => {
-    recordSyncResult({ ok: true, configured: true, time: 1700000000 })
-    recordSyncResult({ ok: false, error: 'BLE disconnected', time: 1700000002 })
-    expect(getSyncStatus()).toEqual({ ok: false, error: 'BLE disconnected', time: 1700000002, configured: true })
+    recordSendResult({ ok: true, configured: true, time: 1700000000 })
+    recordSendResult({ ok: false, error: 'BLE disconnected', time: 1700000002 })
+    expect(getSendStatus()).toEqual({ ok: false, error: 'BLE disconnected', time: 1700000002, configured: true })
   })
 
   it('defaults time to the current time when not provided', () => {
     const before = Math.floor(Date.now() / 1000)
-    recordSyncResult({ ok: true, configured: true })
-    expect(getSyncStatus().time).toBeGreaterThanOrEqual(before)
+    recordSendResult({ ok: true, configured: true })
+    expect(getSendStatus().time).toBeGreaterThanOrEqual(before)
   })
 
   it('degrades to the sentinel instead of throwing when the filesystem is unavailable', () => {
     fs.state.readThrows = true
-    expect(getSyncStatus()).toEqual({ ok: null, error: '', time: 0, configured: null })
+    expect(getSendStatus()).toEqual({ ok: null, error: '', time: 0, configured: null })
   })
 })
 
 // The background service writes nothing on the watch — it cannot. Its history reaches the watch only
-// in the phone's reply to a sync, and is cached here so the next app open can show it without
+// in the phone's reply to a send, and is cached here so the next app open can show it without
 // another round trip.
 describe('background summary', () => {
   it('reports zeroes before the phone has ever reported one', () => {
@@ -94,16 +96,53 @@ describe('background summary', () => {
     expect(getBackgroundSummary()).toEqual({ helloTime: 1700000000, lastTime: 1700000060, count: 3, alarmCount: 2, trigger: 'wd', stage: 'ok', timerMode: 'T' })
   })
 
-  // `hi:` present with `bg:`/`n:` empty is the signature of a service that starts but whose sync
+  // `hi:` present with `bg:`/`n:` empty is the signature of a service that starts but whose send
   // fails — the two must stay independently readable.
-  it('keeps a hello with no syncs distinguishable from no hello at all', () => {
+  it('keeps a hello with no sends distinguishable from no hello at all', () => {
     recordBackgroundSummary({ helloTime: 1700000000, lastTime: 0, count: 0, alarmCount: 0, trigger: 'page', stage: 'sensors', timerMode: 'T' })
     expect(getBackgroundSummary()).toEqual({ helloTime: 1700000000, lastTime: 0, count: 0, alarmCount: 0, trigger: 'page', stage: 'sensors', timerMode: 'T' })
   })
 
-  it('does not make the app look synced', () => {
+  it('does not make the app look sent', () => {
     recordBackgroundSummary({ helloTime: 1700000000, lastTime: 1700000060, count: 3, alarmCount: 2, trigger: 'wd', stage: 'ok', timerMode: 'T' })
-    expect(getSyncStatus()).toEqual({ ok: null, error: '', time: 0, configured: null })
+    expect(getSendStatus()).toEqual({ ok: null, error: '', time: 0, configured: null })
+  })
+})
+
+// A background send changes nothing on the watch — the service that ran it has no watch-side storage
+// to write to. The phone's record of it, carried back on the next reply, is the only way the status
+// line can ever move without someone pressing "Send now".
+describe('send status from the phone', () => {
+  it('shows a background send the watch never performed itself', () => {
+    recordBackgroundSummary({ sendOk: true, sendTime: 1700000060, sendError: '' })
+    expect(getSendStatus()).toMatchObject({ ok: true, error: '', time: 1700000060 })
+  })
+
+  it('prefers the phone when its record is the newer of the two', () => {
+    recordSendResult({ ok: true, configured: true, time: 1700000000 })
+    recordBackgroundSummary({ sendOk: false, sendTime: 1700000060, sendError: 'webhook responded with status 500' })
+    expect(getSendStatus()).toEqual({
+      ok: false,
+      error: 'webhook responded with status 500',
+      time: 1700000060,
+      configured: true,
+    })
+  })
+
+  // A round trip that never reached the phone leaves nothing there to find, so the local record is
+  // the only witness that the attempt happened at all.
+  it('keeps a local failure that is newer than anything the phone saw', () => {
+    recordBackgroundSummary({ sendOk: true, sendTime: 1700000000, sendError: '' })
+    recordSendResult({ ok: false, error: 'BLE request failed', time: 1700000060 })
+    expect(getSendStatus()).toMatchObject({ ok: false, error: 'BLE request failed', time: 1700000060 })
+  })
+
+  // The webhook state comes from the config pull, not from either send record, and must survive a
+  // summary that has nothing to say about it.
+  it('leaves the known webhook state alone', () => {
+    recordSendResult({ ok: true, configured: false, time: 1700000000 })
+    recordBackgroundSummary({ sendOk: true, sendTime: 1700000060, sendError: '' })
+    expect(getSendStatus().configured).toBe(false)
   })
 })
 
@@ -177,14 +216,23 @@ describe('first-launch permission prompt', () => {
     recordPermissionPrompted()
     recordPermissionQuery(2)
     recordServiceStartResult(0)
-    recordSyncResult({ ok: true, time: 1700000000 })
+    recordSendResult({ ok: true, time: 1700000000 })
 
     expect(hasPromptedForPermission()).toBe(true)
   })
 
-  it('reports not prompted instead of throwing when the filesystem is unavailable', () => {
+  // A filesystem that stops answering mid-session no longer un-knows what this VM has already
+  // recorded: the store serves its in-memory copy, and only a *fresh* VM would fall back to the
+  // default. Losing the flag here would raise the first-launch permission dialog a second time.
+  it('keeps what it already knows when the filesystem stops answering', () => {
     recordPermissionPrompted()
     fs.state.readThrows = true
+    expect(hasPromptedForPermission()).toBe(true)
+  })
+
+  it('reports not prompted instead of throwing when the store cannot be read at all', () => {
+    fs.state.readThrows = true
+    resetStoreCache()
     expect(hasPromptedForPermission()).toBe(false)
   })
 })
@@ -195,26 +243,26 @@ describe('durability across recorders', () => {
     recordPermissionQuery(2)
     recordPermissionRequest(0)
     recordServiceStartResult(0)
-    recordSyncResult({ ok: true, configured: true, time: 1700000000 })
+    recordSendResult({ ok: true, configured: true, time: 1700000000 })
     recordBackgroundSummary({ helloTime: 1700000060, lastTime: 1700000120, count: 2, alarmCount: 1, trigger: 'wd', stage: 'ok', timerMode: 'T' })
 
     expect(getLastPermissionQuery()).toBe(2)
     expect(getLastPermissionRequest()).toBe(0)
     expect(getLastServiceStartResult()).toBe(0)
-    expect(getSyncStatus()).toMatchObject({ ok: true, time: 1700000000 })
+    expect(getSendStatus()).toMatchObject({ ok: true, time: 1700000000 })
     expect(getBackgroundSummary()).toEqual({ helloTime: 1700000060, lastTime: 1700000120, count: 2, alarmCount: 1, trigger: 'wd', stage: 'ok', timerMode: 'T' })
   })
 
   it('reports a failed write instead of throwing', () => {
     fs.state.writeThrows = true
-    expect(recordSyncResult({ ok: true, time: 1700000000 })).toBe(false)
+    expect(recordSendResult({ ok: true, time: 1700000000 })).toBe(false)
     expect(recordServiceStartResult(0)).toBe(false)
     expect(recordBackgroundSummary({ helloTime: 1, lastTime: 2, count: 3 })).toBe(false)
   })
 })
 
 // The service's breadcrumb, written by app-service/index.js into its own file. It is what splits the
-// alarm-to-sync chain: every failure in it used to present identically as `a:0`.
+// alarm-to-send chain: every failure in it used to present identically as `a:0`.
 describe('service trace', () => {
   it('reads zeroes when the watchdog has never written its file', () => {
     expect(getServiceTrace()).toEqual({ runs: 0, done: 0, last: '' })

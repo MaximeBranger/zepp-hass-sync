@@ -37,14 +37,16 @@ const {
   getLastPermissionQuery,
   getLastPermissionRequest,
   getLastServiceStartResult,
-} = await import('../../shared/sync-status')
+} = await import('../../shared/send-status')
 const { decodeServiceParam } = await import('../../shared/constants')
+const { resetStoreCache } = await import('../../shared/store')
 
 const SERVICE_FILE = 'app-service/index'
 const INTERVAL = 5
 
 beforeEach(() => {
   fs.files.clear()
+  resetStoreCache()
   vi.clearAllMocks()
   getAllAppServices.mockReturnValue([])
   start.mockReturnValue(0)
@@ -79,7 +81,7 @@ describe('isServiceRunning', () => {
 })
 
 describe('ensureServiceRunning', () => {
-  // Residency is never healthy any more: the service ends itself the moment its sync completes,
+  // Residency is never healthy any more: the service ends itself the moment its send completes,
   // exactly so the next alarm finds the slot free. One still listed is stuck, and a stuck one is
   // fatal rather than untidy — `start()` against a live service is a no-op, so every subsequent
   // alarm firing does nothing at all. Opening the app is the one reliable way to clear it.
@@ -157,8 +159,8 @@ describe('ensureServiceRunning', () => {
   })
 
   // The service has no storage and no other inbound channel: `param` is the only way the pace and
-  // the trigger reach it. Losing either is silent — it would just sync at the default forever, and
-  // every sync would look like the app had been opened.
+  // the trigger reach it. Losing either is silent — it would just send at the default forever, and
+  // every send would look like the app had been opened.
   it('carries the trigger and the interval in the start param', async () => {
     const { SERVICE_TRIGGER_PAGE } = await import('../../shared/constants')
     queryPermission.mockReturnValue([2])

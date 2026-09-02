@@ -1,3 +1,9 @@
+msgid "appTitle"
+msgstr "Zepp → Home Assistant"
+
+msgid "appSubtitle"
+msgstr "Sends your watch health data to Home Assistant."
+
 msgid "webhookSectionTitle"
 msgstr "Home Assistant"
 
@@ -10,53 +16,47 @@ msgstr "Webhook URL"
 msgid "webhookUrlPlaceholder"
 msgstr "https://your-home-assistant/api/webhook/..."
 
-msgid "intervalSectionTitle"
-msgstr "Sync interval"
+msgid "sendIntervalSectionTitle"
+msgstr "Send interval"
 
-msgid "intervalSectionDescription"
-msgstr "How often the watch pushes data to Home Assistant."
+msgid "sendIntervalSectionDescription"
+msgstr "How often the watch sends its data to Home Assistant."
 
 msgid "intervalUnit"
 msgstr "minutes"
 
-msgid "statusSectionTitle"
-msgstr "Last sync"
-
-msgid "statusNeverSynced"
-msgstr "Never synced yet"
-
-msgid "statusOk"
-msgstr "OK"
-
-msgid "statusFailed"
-msgstr "Failed"
-
-msgid "serviceSectionTitle"
-msgstr "Background service"
-
-msgid "serviceSectionDescription"
-msgstr "Syncs automatically while the watch app is closed."
-
-msgid "serviceNeverStarted"
-msgstr "Never started"
-
-msgid "serviceStarted"
-msgstr "Started"
-
-msgid "serviceDelivered"
-msgstr "Syncs delivered"
-
-msgid "serviceDeliveredNone"
-msgstr "No syncs delivered yet"
-
-msgid "serviceStuckAt"
-msgstr "Stuck at stage"
-
-msgid "appTitle"
-msgstr "Zepp → Home Assistant"
-
-msgid "appSubtitle"
-msgstr "Sends your watch health data to Home Assistant."
-
 msgid "debugSectionTitle"
 msgstr "Debug"
+
+msgid "lastSendSectionTitle"
+msgstr "Last send"
+
+msgid "sendNever"
+msgstr "Nothing sent yet"
+
+msgid "sendOk"
+msgstr "OK"
+
+msgid "sendFailed"
+msgstr "Failed"
+
+msgid "autoSendSectionTitle"
+msgstr "Automatic sending"
+
+msgid "autoSendSectionDescription"
+msgstr "Sends on its own while the watch app is closed."
+
+msgid "autoSendNeverStarted"
+msgstr "Never started"
+
+msgid "autoSendStarted"
+msgstr "Started"
+
+msgid "autoSendDelivered"
+msgstr "Sends received"
+
+msgid "autoSendDeliveredNone"
+msgstr "No sends received yet"
+
+msgid "autoSendStuckAt"
+msgstr "Stuck at stage"

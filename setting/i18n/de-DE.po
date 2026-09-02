@@ -1,62 +1,62 @@
-msgid "webhookSectionTitle"
-msgstr "Home Assistant"
-
-msgid "webhookSectionDescription"
-msgstr "Fügen Sie hier die zepp2hass-Webhook-URL von Home Assistant ein."
-
-msgid "webhookUrlLabel"
-msgstr "Webhook-URL"
-
-msgid "webhookUrlPlaceholder"
-msgstr "https://ihr-home-assistant/api/webhook/..."
-
-msgid "intervalSectionTitle"
-msgstr "Synchronisierungsintervall"
-
-msgid "intervalSectionDescription"
-msgstr "Wie oft die Uhr Daten an Home Assistant sendet."
-
-msgid "intervalUnit"
-msgstr "Minuten"
-
-msgid "statusSectionTitle"
-msgstr "Letzte Synchronisierung"
-
-msgid "statusNeverSynced"
-msgstr "Noch nie synchronisiert"
-
-msgid "statusOk"
-msgstr "OK"
-
-msgid "statusFailed"
-msgstr "Fehlgeschlagen"
-
-msgid "serviceSectionTitle"
-msgstr "Hintergrunddienst"
-
-msgid "serviceSectionDescription"
-msgstr "Synchronisiert automatisch, während die Uhren-App geschlossen ist."
-
-msgid "serviceNeverStarted"
-msgstr "Nie gestartet"
-
-msgid "serviceStarted"
-msgstr "Gestartet"
-
-msgid "serviceDelivered"
-msgstr "Übermittelte Synchronisierungen"
-
-msgid "serviceDeliveredNone"
-msgstr "Noch keine Synchronisierung übermittelt"
-
-msgid "serviceStuckAt"
-msgstr "Hängt in Phase"
-
 msgid "appTitle"
 msgstr "Zepp → Home Assistant"
 
 msgid "appSubtitle"
 msgstr "Sendet die Gesundheitsdaten deiner Uhr an Home Assistant."
 
+msgid "webhookSectionTitle"
+msgstr "Home Assistant"
+
+msgid "webhookSectionDescription"
+msgstr "Füge hier die zepp2hass-Webhook-URL aus Home Assistant ein."
+
+msgid "webhookUrlLabel"
+msgstr "Webhook-URL"
+
+msgid "webhookUrlPlaceholder"
+msgstr "https://dein-home-assistant/api/webhook/..."
+
+msgid "sendIntervalSectionTitle"
+msgstr "Sendeintervall"
+
+msgid "sendIntervalSectionDescription"
+msgstr "Wie oft die Uhr ihre Daten an Home Assistant sendet."
+
+msgid "intervalUnit"
+msgstr "Minuten"
+
 msgid "debugSectionTitle"
 msgstr "Debug"
+
+msgid "lastSendSectionTitle"
+msgstr "Letzte Sendung"
+
+msgid "sendNever"
+msgstr "Noch nichts gesendet"
+
+msgid "sendOk"
+msgstr "OK"
+
+msgid "sendFailed"
+msgstr "Fehlgeschlagen"
+
+msgid "autoSendSectionTitle"
+msgstr "Automatisches Senden"
+
+msgid "autoSendSectionDescription"
+msgstr "Sendet selbstständig, während die Uhren-App geschlossen ist."
+
+msgid "autoSendNeverStarted"
+msgstr "Nie gestartet"
+
+msgid "autoSendStarted"
+msgstr "Gestartet"
+
+msgid "autoSendDelivered"
+msgstr "Empfangene Sendungen"
+
+msgid "autoSendDeliveredNone"
+msgstr "Noch keine Sendungen empfangen"
+
+msgid "autoSendStuckAt"
+msgstr "Hängt in Phase"

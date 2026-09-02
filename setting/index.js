@@ -5,15 +5,16 @@ import {
   MIN_INTERVAL_MINUTES,
   INTERVAL_STEP_MINUTES,
   SERVICE_STAGE_OK,
-  SETTINGS_KEY_BG_SYNC_COUNT,
-  SETTINGS_KEY_INTERVAL_MINUTES,
-  SETTINGS_KEY_LAST_BG_SYNC_TIME,
+  SETTINGS_KEY_BG_SEND_COUNT,
+  SETTINGS_KEY_SEND_INTERVAL_MINUTES,
+  SETTINGS_KEY_LAST_BG_SEND_TIME,
   SETTINGS_KEY_LAST_SERVICE_HELLO,
-  SETTINGS_KEY_LAST_SYNC_ERROR,
-  SETTINGS_KEY_LAST_SYNC_OK,
-  SETTINGS_KEY_LAST_SYNC_TIME,
+  SETTINGS_KEY_LAST_SEND_ERROR,
+  SETTINGS_KEY_LAST_SEND_OK,
+  SETTINGS_KEY_LAST_SEND_TIME,
   SETTINGS_KEY_SERVICE_DETAIL,
   SETTINGS_KEY_SERVICE_STAGE,
+  SETTINGS_KEY_SHOW_DEBUG,
   SETTINGS_KEY_WEBHOOK_URL,
   clampIntervalMinutes,
 } from '../shared/constants'
@@ -41,16 +42,20 @@ const styles = {
     fontFamily: '-apple-system, "Segoe UI", Roboto, sans-serif',
     color: COLOR_TEXT,
   },
+  // Text renders inline in the Zepp settings runtime, so every stacked line below sets
+  // `display: block` explicitly — without it the subtitle runs on after the title on one line.
   hero: {
     padding: '4px 6px 18px',
   },
   heroTitle: {
+    display: 'block',
     fontSize: '22px',
     fontWeight: '700',
     lineHeight: '1.25',
     margin: '0',
   },
   heroSubtitle: {
+    display: 'block',
     fontSize: '13px',
     color: COLOR_MUTED,
     lineHeight: '1.45',
@@ -65,17 +70,20 @@ const styles = {
     boxShadow: '0 1px 2px rgba(16, 18, 25, 0.05)',
   },
   cardTitle: {
+    display: 'block',
     fontSize: '15px',
     fontWeight: '600',
     margin: '0',
   },
   cardDescription: {
+    display: 'block',
     fontSize: '12px',
     color: COLOR_MUTED,
     lineHeight: '1.45',
     margin: '4px 0 12px',
   },
   intervalValue: {
+    display: 'block',
     fontSize: '28px',
     fontWeight: '700',
     color: COLOR_ACCENT,
@@ -83,20 +91,19 @@ const styles = {
     marginBottom: '2px',
   },
   intervalUnit: {
+    display: 'block',
     fontSize: '12px',
     color: COLOR_MUTED,
     marginBottom: '10px',
   },
   debugToggle: {
-    width: '100%',
     background: COLOR_CARD,
-    color: COLOR_MUTED,
     border: `1px solid ${COLOR_BORDER}`,
     borderRadius: '14px',
-    padding: '14px 16px',
+    padding: '4px 16px',
+    color: COLOR_MUTED,
     fontSize: '14px',
     fontWeight: '600',
-    textAlign: 'left',
   },
   debugPanel: {
     marginTop: '12px',
@@ -125,18 +132,18 @@ const styles = {
 }
 
 function buildStatus(settingsStorage) {
-  const lastSyncTime = parseInt(settingsStorage.getItem(SETTINGS_KEY_LAST_SYNC_TIME), 10)
+  const lastSyncTime = parseInt(settingsStorage.getItem(SETTINGS_KEY_LAST_SEND_TIME), 10)
   if (!lastSyncTime) {
     return { text: gettext('statusNeverSynced'), color: STATUS_COLOR_NEVER }
   }
 
   const when = formatDateTime(lastSyncTime)
-  const ok = settingsStorage.getItem(SETTINGS_KEY_LAST_SYNC_OK) === 'true'
+  const ok = settingsStorage.getItem(SETTINGS_KEY_LAST_SEND_OK) === 'true'
   if (ok) {
     return { text: `${gettext('statusOk')} — ${when}`, color: STATUS_COLOR_OK }
   }
 
-  const error = settingsStorage.getItem(SETTINGS_KEY_LAST_SYNC_ERROR) || ''
+  const error = settingsStorage.getItem(SETTINGS_KEY_LAST_SEND_ERROR) || ''
   return { text: `${gettext('statusFailed')}: ${error} (${when})`, color: STATUS_COLOR_FAILED }
 }
 
@@ -150,8 +157,8 @@ function buildServiceStatus(settingsStorage) {
     return { text: gettext('serviceNeverStarted'), color: STATUS_COLOR_NEVER }
   }
 
-  const count = parseInt(settingsStorage.getItem(SETTINGS_KEY_BG_SYNC_COUNT), 10) || 0
-  const lastTime = parseInt(settingsStorage.getItem(SETTINGS_KEY_LAST_BG_SYNC_TIME), 10)
+  const count = parseInt(settingsStorage.getItem(SETTINGS_KEY_BG_SEND_COUNT), 10) || 0
+  const lastTime = parseInt(settingsStorage.getItem(SETTINGS_KEY_LAST_BG_SEND_TIME), 10)
   const stage = settingsStorage.getItem(SETTINGS_KEY_SERVICE_STAGE) || ''
   const detail = settingsStorage.getItem(SETTINGS_KEY_SERVICE_DETAIL) || ''
 
@@ -191,7 +198,6 @@ function StatusLine(status) {
 AppSettingsPage({
   state: {
     props: {},
-    showDebug: false,
   },
 
   setWebhookUrl(value) {
@@ -200,14 +206,18 @@ AppSettingsPage({
 
   setIntervalMinutes(value) {
     const minutes = clampIntervalMinutes(value)
-    this.state.props.settingsStorage.setItem(SETTINGS_KEY_INTERVAL_MINUTES, String(minutes))
+    this.state.props.settingsStorage.setItem(SETTINGS_KEY_SEND_INTERVAL_MINUTES, String(minutes))
   },
 
-  toggleDebug() {
-    this.setState({ showDebug: !this.state.showDebug })
+  // The expanded/collapsed flag goes through settingsStorage rather than through this page's own
+  // state. `setState()` left the panel inert on a real phone — nothing happened on tap — whereas a
+  // settingsStorage write is what the settings host always re-renders on, since it is how every
+  // other control on this screen already takes effect.
+  toggleDebug(showDebug) {
+    this.state.props.settingsStorage.setItem(SETTINGS_KEY_SHOW_DEBUG, showDebug ? 'true' : 'false')
   },
 
-  // Everything the user never needs on a good day: the last-sync readout and the background
+  // Everything the user never needs on a good day: the last-send readout and the background
   // service's own report. Collapsed by default so the two settings above stay the whole screen.
   buildDebugPanel(settingsStorage) {
     const status = buildStatus(settingsStorage)
@@ -227,13 +237,13 @@ AppSettingsPage({
     this.state.props = props
     const settingsStorage = props.settingsStorage
     const webhookUrl = settingsStorage.getItem(SETTINGS_KEY_WEBHOOK_URL) || ''
-    const intervalMinutes = clampIntervalMinutes(settingsStorage.getItem(SETTINGS_KEY_INTERVAL_MINUTES))
-    const showDebug = this.state.showDebug
+    const intervalMinutes = clampIntervalMinutes(settingsStorage.getItem(SETTINGS_KEY_SEND_INTERVAL_MINUTES))
+    const showDebug = settingsStorage.getItem(SETTINGS_KEY_SHOW_DEBUG) === 'true'
 
     const children = [
       View({ style: styles.hero }, [
-        Text({ style: styles.heroTitle }, gettext('appTitle')),
-        Text({ style: styles.heroSubtitle }, gettext('appSubtitle')),
+        View({}, [Text({ style: styles.heroTitle }, gettext('appTitle'))]),
+        View({}, [Text({ style: styles.heroSubtitle }, gettext('appSubtitle'))]),
       ]),
 
       Card(gettext('webhookSectionTitle'), gettext('webhookSectionDescription'), [
@@ -257,11 +267,15 @@ AppSettingsPage({
         }),
       ]),
 
-      Button({
-        label: `${showDebug ? '▾' : '▸'}  ${gettext('debugSectionTitle')}`,
-        style: styles.debugToggle,
-        onClick: () => this.toggleDebug(),
-      }),
+      // A Toggle rather than a Button: Toggle is a core settings control whose tap always reaches
+      // onChange, and it makes the panel's open/closed state visible instead of implied.
+      View({ style: styles.debugToggle }, [
+        Toggle({
+          label: gettext('debugSectionTitle'),
+          value: showDebug,
+          onChange: (value) => this.toggleDebug(value),
+        }),
+      ]),
     ]
 
     if (showDebug) {

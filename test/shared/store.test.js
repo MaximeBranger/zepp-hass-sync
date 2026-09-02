@@ -17,10 +17,11 @@ vi.mock('@zos/fs', () => ({
 
 vi.mock('@zos/utils', () => ({ log: { getLogger: () => ({ log: () => {}, error: () => {} }) } }))
 
-const { PAGE_STORE, readField, readStore, updateStore } = await import('../../shared/store')
+const { PAGE_STORE, readField, readStore, updateStore, resetStoreCache } = await import('../../shared/store')
 
 beforeEach(() => {
   fs.files.clear()
+  resetStoreCache()
   fs.state.readThrows = false
   fs.state.writeThrows = false
 })
@@ -41,7 +42,7 @@ describe('readStore', () => {
   })
 
   // Every caller is a diagnostic or a status read; in the App Service an escaping error ends the
-  // background sync entirely.
+  // background send entirely.
   it('returns an empty object instead of throwing when the filesystem is unavailable', () => {
     fs.state.readThrows = true
     expect(readStore(PAGE_STORE)).toEqual({})

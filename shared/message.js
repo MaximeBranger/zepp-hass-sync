@@ -912,7 +912,35 @@ export class MessageBuilder extends EventBus {
       ])
     }
 
-    return this.waitingShakePromise.then(_request)
+    // The handshake gets the same deadline as the request it precedes.
+    //
+    // Without this, `opts.timeout` only ever covered the phase *after* the shake was answered, and a
+    // shake that never came back left the returned promise pending forever — no resolve, no reject,
+    // no timeout. That is what killed the watch's Refresh button after its first use: once the
+    // background service is running, its own connect/disconnect cycle competes for the single BLE
+    // link, the page's next transient connection never gets its shake answered, and the caller's
+    // in-flight guard stayed set for the life of the page, so every later tap did nothing at all.
+    // Failing after `opts.timeout` is what lets the caller report the failure and try again.
+    return this.waitShake(opts && opts.timeout).then(_request)
+  }
+
+  // Resolves when the peer has answered the shake, rejects once `ms` has passed without one. In App
+  // Service context there is no setTimeout, so timeout() degrades to a promise that never settles
+  // and the race falls back to the shake alone — the caller's own deadline is the guard there.
+  waitShake(ms) {
+    let shaken = false
+
+    return Promise.race([
+      this.waitingShakePromise.then(() => {
+        shaken = true
+      }),
+      timeout(ms || 60000, (resolve, reject) => {
+        // A shake that landed first leaves this timer to fire into nothing: resolve it, so the race
+        // is not settled by a rejection nobody is listening for any more.
+        if (shaken) return resolve()
+        reject(Error(`Handshake timed out in ${ms || 60000}ms.`))
+      }),
+    ])
   }
 
   /**

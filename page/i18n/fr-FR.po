@@ -1,0 +1,53 @@
+msgid "sendNow"
+msgstr "Envoyer"
+
+msgid "readingSensors"
+msgstr "Lecture des capteurs…"
+
+msgid "sending"
+msgstr "Envoi…"
+
+msgid "statusWebhookMissing"
+msgstr "Webhook non défini"
+
+msgid "detailNothingSent"
+msgstr "Aucune donnée envoyée"
+
+msgid "detailSetWebhook"
+msgstr "Renseignez l'URL du webhook dans l'app Zepp"
+
+msgid "configEvery"
+msgstr "Envoi toutes les {n} min"
+
+msgid "configUnknown"
+msgstr "Config non chargée"
+
+msgid "configRefreshing"
+msgstr "Récupération…"
+
+msgid "configRefreshFailed"
+msgstr "Échec de récupération"
+
+msgid "configNoReply"
+msgstr "Aucune config reçue"
+
+msgid "refreshConfig"
+msgstr "Récupérer la config"
+
+msgid "bgEnable"
+msgstr "Activer l'envoi auto"
+
+msgid "bgWaitingForPhone"
+msgstr "Attente du téléphone…"
+
+msgid "bgSetWebhook"
+msgstr "Webhook à définir"
+
+msgid "bgTapToRestart"
+msgstr "Accordé — toucher pour relancer"
+
+msgid "bgAsking"
+msgstr "Demande…"
+
+msgid "bgStarting"
+msgstr "Démarrage…"

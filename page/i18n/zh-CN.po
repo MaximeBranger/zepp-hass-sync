@@ -1,0 +1,53 @@
+msgid "sendNow"
+msgstr "立即发送"
+
+msgid "readingSensors"
+msgstr "正在读取传感器…"
+
+msgid "sending"
+msgstr "正在发送…"
+
+msgid "statusWebhookMissing"
+msgstr "未设置 Webhook"
+
+msgid "detailNothingSent"
+msgstr "尚未发送数据"
+
+msgid "detailSetWebhook"
+msgstr "请在 Zepp 应用中填写 Webhook 地址"
+
+msgid "configEvery"
+msgstr "每 {n} 分钟发送"
+
+msgid "configUnknown"
+msgstr "配置未加载"
+
+msgid "configRefreshing"
+msgstr "正在获取…"
+
+msgid "configRefreshFailed"
+msgstr "获取失败"
+
+msgid "configNoReply"
+msgstr "未收到配置"
+
+msgid "refreshConfig"
+msgstr "获取配置"
+
+msgid "bgEnable"
+msgstr "开启自动发送"
+
+msgid "bgWaitingForPhone"
+msgstr "等待手机…"
+
+msgid "bgSetWebhook"
+msgstr "请在手机上设置 Webhook"
+
+msgid "bgTapToRestart"
+msgstr "已授权 — 点击重启"
+
+msgid "bgAsking"
+msgstr "正在请求…"
+
+msgid "bgStarting"
+msgstr "正在启动…"

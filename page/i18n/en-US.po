@@ -1,0 +1,53 @@
+msgid "sendNow"
+msgstr "Send now"
+
+msgid "readingSensors"
+msgstr "Reading sensors…"
+
+msgid "sending"
+msgstr "Sending…"
+
+msgid "statusWebhookMissing"
+msgstr "Webhook not set"
+
+msgid "detailNothingSent"
+msgstr "No data sent yet"
+
+msgid "detailSetWebhook"
+msgstr "Set the webhook URL in the Zepp app"
+
+msgid "configEvery"
+msgstr "Sending every {n} min"
+
+msgid "configUnknown"
+msgstr "Config not loaded yet"
+
+msgid "configRefreshing"
+msgstr "Refreshing config…"
+
+msgid "configRefreshFailed"
+msgstr "Config refresh failed"
+
+msgid "configNoReply"
+msgstr "Phone sent no config"
+
+msgid "refreshConfig"
+msgstr "Refresh config"
+
+msgid "bgEnable"
+msgstr "Enable auto send"
+
+msgid "bgWaitingForPhone"
+msgstr "Waiting for phone…"
+
+msgid "bgSetWebhook"
+msgstr "Set webhook on phone"
+
+msgid "bgTapToRestart"
+msgstr "Granted — tap to restart"
+
+msgid "bgAsking"
+msgstr "Asking…"
+
+msgid "bgStarting"
+msgstr "Starting…"

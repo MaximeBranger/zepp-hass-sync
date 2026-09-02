@@ -12,7 +12,7 @@ vi.mock('@zos/alarm', () => ({
   getAllAlarms: (...args) => getAllAlarms(...args),
 }))
 
-const { armNextAlarm, cancelAllAlarms, scheduleSyncAlarm } = await import('../../shared/alarm')
+const { armNextAlarm, cancelAllAlarms, scheduleSendAlarm } = await import('../../shared/alarm')
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -116,7 +116,7 @@ describe('armNextAlarm', () => {
   })
 })
 
-describe('scheduleSyncAlarm', () => {
+describe('scheduleSendAlarm', () => {
   // The regression that once buried the watch: set() adds an alarm rather than replacing one, and
   // this runs on every app open. Without the sweep first, alarms accumulate indefinitely.
   it('clears existing alarms before arming a new one', () => {
@@ -128,14 +128,14 @@ describe('scheduleSyncAlarm', () => {
       return 42
     })
 
-    expect(scheduleSyncAlarm(5)).toEqual({ id: 42, cancelled: 2 })
+    expect(scheduleSendAlarm(5)).toEqual({ id: 42, cancelled: 2 })
     expect(calls).toEqual(['cancel', 'cancel', 'set'])
   })
 
-  // Pointing the alarm at anything but the syncing service has been tried twice and failed twice:
+  // Pointing the alarm at anything but the sending service has been tried twice and failed twice:
   // at a page it launches the UI, and at a second service that calls start() it returns 255.
-  it('wakes the syncing service', () => {
-    scheduleSyncAlarm(5)
+  it('wakes the sending service', () => {
+    scheduleSendAlarm(5)
 
     expect(set).toHaveBeenCalledTimes(1)
     expect(set.mock.calls[0][0].url).toBe(APP_SERVICE_FILE)
@@ -147,12 +147,12 @@ describe('scheduleSyncAlarm', () => {
       throw new Error('no permission')
     })
 
-    expect(scheduleSyncAlarm(5)).toEqual({ id: 0, cancelled: 1 })
+    expect(scheduleSendAlarm(5)).toEqual({ id: 0, cancelled: 1 })
   })
 })
 
-// A sync's trigger decides whether the phone counts it as unattended, which is the only number that
-// answers whether background sync works — the total climbs on every app open and proves nothing.
+// A send's trigger decides whether the phone counts it as unattended, which is the only number that
+// answers whether background send works — the total climbs on every app open and proves nothing.
 describe('trigger tagging', () => {
   it('counts an alarm-driven run as unattended, and an app open as not', async () => {
     const { isUnattendedTrigger, SERVICE_TRIGGER_PAGE, SERVICE_TRIGGER_ALARM } = await import(
@@ -160,7 +160,7 @@ describe('trigger tagging', () => {
     )
 
     expect(isUnattendedTrigger(SERVICE_TRIGGER_ALARM)).toBe(true)
-    // The app being opened must never be mistaken for background sync working; that is the whole
+    // The app being opened must never be mistaken for background send working; that is the whole
     // point of counting them apart.
     expect(isUnattendedTrigger(SERVICE_TRIGGER_PAGE)).toBe(false)
     expect(isUnattendedTrigger(undefined)).toBe(false)

@@ -1,4 +1,4 @@
-// Watch-side only. The cached copy of the phone's configuration — the sync interval and whether a
+// Watch-side only. The cached copy of the phone's configuration — the send interval and whether a
 // webhook URL is set — as last pulled by a GET_CONFIG round trip.
 //
 // This is a cache, not a setting. The phone's Settings screen is the only place either value is
@@ -13,7 +13,7 @@ import { PAGE_STORE, readStore, updateStore } from './store'
 import {
   DEFAULT_INTERVAL_MINUTES,
   STATE_KEY_CONFIG_TIME,
-  STATE_KEY_INTERVAL_MINUTES,
+  STATE_KEY_SEND_INTERVAL_MINUTES,
   STATE_KEY_WEBHOOK_CONFIGURED,
   clampIntervalMinutes,
 } from './constants'
@@ -32,7 +32,7 @@ import {
 // different states and only the second one blocks the background worker.
 export function readConfig() {
   const store = readStore(PAGE_STORE)
-  const storedInterval = store[STATE_KEY_INTERVAL_MINUTES]
+  const storedInterval = store[STATE_KEY_SEND_INTERVAL_MINUTES]
   const configured = store[STATE_KEY_WEBHOOK_CONFIGURED]
   const pulledAt = store[STATE_KEY_CONFIG_TIME]
 
@@ -49,7 +49,7 @@ export function readConfig() {
 // stop the worker over a message-shape mismatch.
 export function writeConfig({ intervalMinutes, configured, time = Math.floor(Date.now() / 1000) }) {
   const fields = {
-    [STATE_KEY_INTERVAL_MINUTES]: clampIntervalMinutes(intervalMinutes),
+    [STATE_KEY_SEND_INTERVAL_MINUTES]: clampIntervalMinutes(intervalMinutes),
     [STATE_KEY_CONFIG_TIME]: time,
   }
   if (typeof configured === 'boolean') fields[STATE_KEY_WEBHOOK_CONFIGURED] = configured

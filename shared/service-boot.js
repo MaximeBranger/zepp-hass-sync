@@ -25,7 +25,7 @@
 import { queryPermission, requestPermission } from '@zos/app'
 import { getAllAppServices, start, stop } from '@zos/app-service'
 import { log as Logger } from '@zos/utils'
-import { recordPermissionQuery, recordPermissionRequest, recordServiceStartResult } from './sync-status'
+import { recordPermissionQuery, recordPermissionRequest, recordServiceStartResult } from './send-status'
 import { APP_SERVICE_FILE, SERVICE_TRIGGER_PAGE, encodeServiceParam } from './constants'
 
 const logger = Logger.getLogger('hass-sync-boot')
@@ -198,8 +198,8 @@ export function ensureServiceRunning(intervalMinutes, onSettled = () => {}) {
   const settle = safely(onSettled)
 
   // A resident service is always replaced, never left alone. Residency is no longer a healthy state
-  // at all: the service ends itself the moment its sync completes, precisely so the next alarm finds
-  // the slot free. One still listed is therefore either mid-sync — a few seconds, and no loss in
+  // at all: the service ends itself the moment its send completes, precisely so the next alarm finds
+  // the slot free. One still listed is therefore either mid-send — a few seconds, and no loss in
   // replacing it — or stuck, and a stuck one is fatal rather than untidy, because `start()` against
   // a live service is a no-op, so no alarm can ever get past it. Every firing from then on does
   // nothing, silently, forever.

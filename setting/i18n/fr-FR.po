@@ -1,3 +1,9 @@
+msgid "appTitle"
+msgstr "Zepp → Home Assistant"
+
+msgid "appSubtitle"
+msgstr "Envoie les données de santé de votre montre vers Home Assistant."
+
 msgid "webhookSectionTitle"
 msgstr "Home Assistant"
 
@@ -10,53 +16,47 @@ msgstr "URL du webhook"
 msgid "webhookUrlPlaceholder"
 msgstr "https://votre-home-assistant/api/webhook/..."
 
-msgid "intervalSectionTitle"
-msgstr "Intervalle de synchronisation"
+msgid "sendIntervalSectionTitle"
+msgstr "Intervalle d'envoi"
 
-msgid "intervalSectionDescription"
-msgstr "Fréquence à laquelle la montre envoie les données à Home Assistant."
+msgid "sendIntervalSectionDescription"
+msgstr "Fréquence à laquelle la montre envoie ses données à Home Assistant."
 
 msgid "intervalUnit"
 msgstr "minutes"
 
-msgid "statusSectionTitle"
-msgstr "Dernière synchronisation"
-
-msgid "statusNeverSynced"
-msgstr "Jamais synchronisé"
-
-msgid "statusOk"
-msgstr "OK"
-
-msgid "statusFailed"
-msgstr "Échec"
-
-msgid "serviceSectionTitle"
-msgstr "Service en arrière-plan"
-
-msgid "serviceSectionDescription"
-msgstr "Synchronise automatiquement lorsque l'app de la montre est fermée."
-
-msgid "serviceNeverStarted"
-msgstr "Jamais démarré"
-
-msgid "serviceStarted"
-msgstr "Démarré"
-
-msgid "serviceDelivered"
-msgstr "Synchronisations reçues"
-
-msgid "serviceDeliveredNone"
-msgstr "Aucune synchronisation reçue"
-
-msgid "serviceStuckAt"
-msgstr "Bloqué à l'étape"
-
-msgid "appTitle"
-msgstr "Zepp → Home Assistant"
-
-msgid "appSubtitle"
-msgstr "Envoie les données de santé de votre montre vers Home Assistant."
-
 msgid "debugSectionTitle"
 msgstr "Débogage"
+
+msgid "lastSendSectionTitle"
+msgstr "Dernier envoi"
+
+msgid "sendNever"
+msgstr "Aucun envoi pour le moment"
+
+msgid "sendOk"
+msgstr "OK"
+
+msgid "sendFailed"
+msgstr "Échec"
+
+msgid "autoSendSectionTitle"
+msgstr "Envoi automatique"
+
+msgid "autoSendSectionDescription"
+msgstr "Envoie tout seul lorsque l'app de la montre est fermée."
+
+msgid "autoSendNeverStarted"
+msgstr "Jamais démarré"
+
+msgid "autoSendStarted"
+msgstr "Démarré"
+
+msgid "autoSendDelivered"
+msgstr "Envois reçus"
+
+msgid "autoSendDeliveredNone"
+msgstr "Aucun envoi reçu"
+
+msgid "autoSendStuckAt"
+msgstr "Bloqué à l'étape"

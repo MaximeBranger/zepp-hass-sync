@@ -3,23 +3,23 @@ import { formatForZepp2Hass } from './format'
 import {
   MESSAGE_METHOD_GET_CONFIG,
   MESSAGE_METHOD_SERVICE_REPORT,
-  MESSAGE_METHOD_SYNC,
+  MESSAGE_METHOD_SEND,
   MESSAGE_SOURCE_SERVICE,
   SERVICE_STAGE_OK,
   SETTINGS_KEY_LAST_TRIGGER,
   isUnattendedTrigger,
-  SETTINGS_KEY_BG_ALARM_COUNT,
-  SETTINGS_KEY_BG_SYNC_COUNT,
-  SETTINGS_KEY_INTERVAL_MINUTES,
-  SETTINGS_KEY_LAST_BG_SYNC_TIME,
+  SETTINGS_KEY_BG_ALARM_SEND_COUNT,
+  SETTINGS_KEY_BG_SEND_COUNT,
+  SETTINGS_KEY_SEND_INTERVAL_MINUTES,
+  SETTINGS_KEY_LAST_BG_SEND_TIME,
   SETTINGS_KEY_LAST_SERVICE_HELLO,
   SETTINGS_KEY_SERVICE_DETAIL,
   SETTINGS_KEY_SERVICE_REPORT_TIME,
   SETTINGS_KEY_SERVICE_STAGE,
   SETTINGS_KEY_SERVICE_TIMER_MODE,
-  SETTINGS_KEY_LAST_SYNC_ERROR,
-  SETTINGS_KEY_LAST_SYNC_OK,
-  SETTINGS_KEY_LAST_SYNC_TIME,
+  SETTINGS_KEY_LAST_SEND_ERROR,
+  SETTINGS_KEY_LAST_SEND_OK,
+  SETTINGS_KEY_LAST_SEND_TIME,
   SETTINGS_KEY_WEBHOOK_URL,
   clampIntervalMinutes,
 } from '../shared/constants'
@@ -33,7 +33,7 @@ function getWebhookUrl() {
 }
 
 function getIntervalMinutes() {
-  return clampIntervalMinutes(settings.settingsStorage.getItem(SETTINGS_KEY_INTERVAL_MINUTES))
+  return clampIntervalMinutes(settings.settingsStorage.getItem(SETTINGS_KEY_SEND_INTERVAL_MINUTES))
 }
 
 function now() {
@@ -45,23 +45,23 @@ function readNumber(key) {
   return Number.isFinite(raw) ? raw : 0
 }
 
-function recordSyncResult({ ok, error }) {
-  settings.settingsStorage.setItem(SETTINGS_KEY_LAST_SYNC_OK, String(!!ok))
-  settings.settingsStorage.setItem(SETTINGS_KEY_LAST_SYNC_ERROR, error || '')
-  settings.settingsStorage.setItem(SETTINGS_KEY_LAST_SYNC_TIME, String(now()))
+function recordSendResult({ ok, error }) {
+  settings.settingsStorage.setItem(SETTINGS_KEY_LAST_SEND_OK, String(!!ok))
+  settings.settingsStorage.setItem(SETTINGS_KEY_LAST_SEND_ERROR, error || '')
+  settings.settingsStorage.setItem(SETTINGS_KEY_LAST_SEND_TIME, String(now()))
 }
 
 // The phone is where the background service's own history lives — see the constants' comment for
 // why it can't live on the watch. Counted, not just timestamped: a count that climbs is the proof
 // that the service is looping rather than having run once.
-function recordBackgroundSync(trigger) {
-  settings.settingsStorage.setItem(SETTINGS_KEY_LAST_BG_SYNC_TIME, String(now()))
-  settings.settingsStorage.setItem(SETTINGS_KEY_BG_SYNC_COUNT, String(readNumber(SETTINGS_KEY_BG_SYNC_COUNT) + 1))
-  // The count that answers whether background sync works at all. The total above rises whenever the
+function recordBackgroundSend(trigger) {
+  settings.settingsStorage.setItem(SETTINGS_KEY_LAST_BG_SEND_TIME, String(now()))
+  settings.settingsStorage.setItem(SETTINGS_KEY_BG_SEND_COUNT, String(readNumber(SETTINGS_KEY_BG_SEND_COUNT) + 1))
+  // The count that answers whether background send works at all. The total above rises whenever the
   // app is opened, since opening it starts the service; only this one rises on its own.
   settings.settingsStorage.setItem(SETTINGS_KEY_LAST_TRIGGER, String(trigger || '?'))
   if (isUnattendedTrigger(trigger)) {
-    settings.settingsStorage.setItem(SETTINGS_KEY_BG_ALARM_COUNT, String(readNumber(SETTINGS_KEY_BG_ALARM_COUNT) + 1))
+    settings.settingsStorage.setItem(SETTINGS_KEY_BG_ALARM_SEND_COUNT, String(readNumber(SETTINGS_KEY_BG_ALARM_SEND_COUNT) + 1))
   }
 }
 
@@ -79,14 +79,22 @@ function recordServiceReport({ stage, detail }) {
   settings.settingsStorage.setItem(SETTINGS_KEY_SERVICE_REPORT_TIME, String(now()))
 }
 
-// Attached to every SYNC response so the watch face can show the background service's state without
+// Attached to every SEND response so the watch face can show the background service's state without
 // reading any watch-side storage — the round trip it already makes carries the answer back.
+//
+// `sendOk/sendTime/sendError` are the phone's record of the last send it handled from either side,
+// and they are what the watch face's status line is actually built from. The watch cannot observe a
+// background send on its own: the service that performs one has no access to watch-side storage, so
+// nothing on the watch changes when it succeeds. Sending the outcome back here is the only path.
 function backgroundSummary() {
   return {
+    sendOk: settings.settingsStorage.getItem(SETTINGS_KEY_LAST_SEND_OK) === 'true',
+    sendTime: readNumber(SETTINGS_KEY_LAST_SEND_TIME),
+    sendError: settings.settingsStorage.getItem(SETTINGS_KEY_LAST_SEND_ERROR) || '',
     helloTime: readNumber(SETTINGS_KEY_LAST_SERVICE_HELLO),
-    lastTime: readNumber(SETTINGS_KEY_LAST_BG_SYNC_TIME),
-    count: readNumber(SETTINGS_KEY_BG_SYNC_COUNT),
-    alarmCount: readNumber(SETTINGS_KEY_BG_ALARM_COUNT),
+    lastTime: readNumber(SETTINGS_KEY_LAST_BG_SEND_TIME),
+    count: readNumber(SETTINGS_KEY_BG_SEND_COUNT),
+    alarmCount: readNumber(SETTINGS_KEY_BG_ALARM_SEND_COUNT),
     trigger: settings.settingsStorage.getItem(SETTINGS_KEY_LAST_TRIGGER) || '',
     stage: settings.settingsStorage.getItem(SETTINGS_KEY_SERVICE_STAGE) || '',
     timerMode: settings.settingsStorage.getItem(SETTINGS_KEY_SERVICE_TIMER_MODE) || '',
@@ -94,7 +102,7 @@ function backgroundSummary() {
   }
 }
 
-async function syncToWebhook(payload) {
+async function sendToWebhook(payload) {
   const url = getWebhookUrl()
   if (!url) {
     logger.error('no webhook URL configured')
@@ -141,29 +149,29 @@ AppSideService({
         const { stage, detail, timerMode } = request.payload || {}
         recordServiceContact(timerMode)
         // Only when a stage is actually named. Recording an empty one would erase the error left by
-        // a failed sync — the one thing the watch face needs most at exactly that moment.
+        // a failed send — the one thing the watch face needs most at exactly that moment.
         if (stage) recordServiceReport({ stage, detail })
         logger.log('service report: stage=' + stage + ' detail=' + detail)
         ctx.response({ data: { ok: true, intervalMinutes: getIntervalMinutes() } })
         return
       }
 
-      if (request.method === MESSAGE_METHOD_SYNC) {
+      if (request.method === MESSAGE_METHOD_SEND) {
         const fromService = request.source === MESSAGE_SOURCE_SERVICE
         // Before the webhook call, not after: this records that the service reached us, which is
         // true regardless of what Home Assistant then does with the data.
         if (fromService) recordServiceContact(request.timerMode)
-        syncToWebhook(request.payload).then((result) => {
-          recordSyncResult(result)
+        sendToWebhook(request.payload).then((result) => {
+          recordSendResult(result)
           // Counted on delivery, not on webhook success: the question this answers is whether the
           // service is running and reaching the phone, which a webhook misconfiguration must not
           // mask.
           if (fromService) {
-            recordBackgroundSync(request.trigger)
+            recordBackgroundSend(request.trigger)
             recordServiceReport({ stage: SERVICE_STAGE_OK, detail: result.error || '' })
           }
           const data = { ...result, intervalMinutes: getIntervalMinutes(), background: backgroundSummary() }
-          logger.log('responding to SYNC: ' + JSON.stringify(data))
+          logger.log('responding to SEND: ' + JSON.stringify(data))
           ctx.response({ data })
         })
         return
