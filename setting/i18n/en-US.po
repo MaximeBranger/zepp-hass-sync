@@ -52,3 +52,11 @@ msgstr "No syncs delivered yet"
 msgid "serviceStuckAt"
 msgstr "Stuck at stage"
 
+msgid "appTitle"
+msgstr "Zepp → Home Assistant"
+
+msgid "appSubtitle"
+msgstr "Sends your watch health data to Home Assistant."
+
+msgid "debugSectionTitle"
+msgstr "Debug"

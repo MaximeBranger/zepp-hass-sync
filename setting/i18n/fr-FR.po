@@ -52,3 +52,11 @@ msgstr "Aucune synchronisation reçue"
 msgid "serviceStuckAt"
 msgstr "Bloqué à l'étape"
 
+msgid "appTitle"
+msgstr "Zepp → Home Assistant"
+
+msgid "appSubtitle"
+msgstr "Envoie les données de santé de votre montre vers Home Assistant."
+
+msgid "debugSectionTitle"
+msgstr "Débogage"

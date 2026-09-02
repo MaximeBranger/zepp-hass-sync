@@ -52,3 +52,11 @@ msgstr "Noch keine Synchronisierung übermittelt"
 msgid "serviceStuckAt"
 msgstr "Hängt in Phase"
 
+msgid "appTitle"
+msgstr "Zepp → Home Assistant"
+
+msgid "appSubtitle"
+msgstr "Sendet die Gesundheitsdaten deiner Uhr an Home Assistant."
+
+msgid "debugSectionTitle"
+msgstr "Debug"

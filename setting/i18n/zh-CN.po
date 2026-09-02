@@ -52,3 +52,11 @@ msgstr "尚未送达任何同步"
 msgid "serviceStuckAt"
 msgstr "卡在阶段"
 
+msgid "appTitle"
+msgstr "Zepp → Home Assistant"
+
+msgid "appSubtitle"
+msgstr "将手表的健康数据发送到 Home Assistant。"
+
+msgid "debugSectionTitle"
+msgstr "调试"

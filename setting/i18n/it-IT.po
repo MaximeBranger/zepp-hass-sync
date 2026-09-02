@@ -52,3 +52,11 @@ msgstr "Nessuna sincronizzazione ricevuta"
 msgid "serviceStuckAt"
 msgstr "Bloccato alla fase"
 
+msgid "appTitle"
+msgstr "Zepp → Home Assistant"
+
+msgid "appSubtitle"
+msgstr "Invia i dati di salute del tuo orologio a Home Assistant."
+
+msgid "debugSectionTitle"
+msgstr "Debug"
