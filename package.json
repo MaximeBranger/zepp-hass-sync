@@ -15,6 +15,6 @@
     "@zeppos/device-types": "^4.0.0",
     "eslint": "^10.9.1",
     "globals": "^17.8.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }
